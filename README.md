@@ -683,7 +683,7 @@ Die Visualisierungen liegen im Ordner `results/`.
 Das Horizontprofil zeigt die Umgebungshoehe abhaengig vom Azimut. Es wird zur
 direkten Horizontverschattung genutzt.
 
-![Horizontprofil](../results/horizon_profile.png)
+![Horizontprofil](./results/horizon_profile.png)
 
 ### Energieuebersicht
 
@@ -695,7 +695,7 @@ Die Energieuebersicht aggregiert die 10-Minuten-Ergebnisse auf Tageswerte und ze
 - taegliche AC-Spitzenleistung
 - Luft- und Modultemperatur
 
-![Energieuebersicht](../results/energy_overview.png)
+![Energieuebersicht](./results/energy_overview.png)
 
 ## Qualitaetssicherung im Code
 
