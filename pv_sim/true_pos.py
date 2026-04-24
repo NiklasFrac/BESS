@@ -9,6 +9,7 @@ import yaml
 
 REQUIRED_COLUMNS = {
     "station_id",
+    "station_name",
     "latitude",
     "longitude",
     "height_m_amsl",
@@ -25,7 +26,7 @@ def _find_repo_root(start: Path) -> Path:
 
 
 
-def _load_station_row(metadata_path: Path, station_id: str) -> pd.Series:
+def _load_station_row(metadata_path: Path, station_name: str) -> pd.Series:
     df = pd.read_csv(metadata_path, dtype={"station_id": str})
 
     missing = REQUIRED_COLUMNS.difference(df.columns)
@@ -35,11 +36,23 @@ def _load_station_row(metadata_path: Path, station_id: str) -> pd.Series:
             f"metadata_stations.csv is missing required columns: {missing_str}"
         )
 
-    matched = df.loc[df["station_id"] == station_id].copy()
+    station_query = station_name.strip()
+    normalized_query = station_query.casefold()
+
+    station_names = df["station_name"].astype(str).str.strip().str.casefold()
+    matched = df.loc[station_names == normalized_query].copy()
+
+    if matched.empty and station_query:
+        matched = df.loc[df["station_id"].astype(str).str.strip() == station_query].copy()
 
     if matched.empty:
         raise ValueError(
-            f"Station ID '{station_id}' not found in {metadata_path}."
+            f"Station '{station_name}' not found in {metadata_path}."
+        )
+
+    if len(matched) > 1:
+        raise ValueError(
+            f"Station '{station_name}' is not unique in {metadata_path}."
         )
 
     return matched.iloc[0]
@@ -61,7 +74,7 @@ def main() -> None:
 
     metadata_path = repo_root / cfg["paths"]["metadata"]
 
-    station = _load_station_row(metadata_path, str(cfg["station"]["id"]))
+    station = _load_station_row(metadata_path, str(cfg["station"]["name"]))
 
     latitude  = float(station["latitude"])
     longitude = float(station["longitude"])
