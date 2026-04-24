@@ -9,7 +9,8 @@ from pv_sim.compute_poa import main as compute_poa_main
 from pv_sim.modul_sim import main as pv_sim_main
 from pv_sim.seen_pos import main as seen_pos_main
 from pv_sim.true_pos import main as true_pos_main
-from visualization.energy_prod_visual import main as energy_visual_main
+from pv_sim.visualization.energy_prod_visual import main as energy_visual_main
+from pv_sim.visualization.horizon_visual import main as horizon_visual_main
 
 
 def _find_repo_root(start: Path) -> Path:
@@ -40,6 +41,7 @@ def main() -> None:
         ("Compute POA", compute_poa_main),
         ("Compute Effective Irradiance", compute_effective_irradiance_main),
         ("PV Simulation", pv_sim_main),
+        ("Horizon Visualisation", horizon_visual_main),
         ("Energy Visualisation", energy_visual_main),
     ]
 

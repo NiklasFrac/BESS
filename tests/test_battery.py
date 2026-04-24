@@ -4,7 +4,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 import pytest
-from battery import BatterySpec, BatteryState, step
+from battery_core import BatterySpec, BatteryState, step
 
 CONFIG = Path(__file__).parent.parent / "configs" / "config.yaml"
 DT_H = 10 / 60  # 10-Minuten Timestep

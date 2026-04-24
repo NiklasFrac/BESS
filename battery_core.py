@@ -14,6 +14,16 @@ class BatterySpec:
     eta_charge: float
     eta_discharge: float
 
+    def __post_init__(self) -> None:
+        if self.capacity_kwh <= 0:
+            raise ValueError("capacity_kwh must be positive.")
+        if not (0 <= self.soc_min < self.soc_max <= 1):
+            raise ValueError("Require 0 <= soc_min < soc_max <= 1.")
+        if not (0 < self.eta_charge <= 1) or not (0 < self.eta_discharge <= 1):
+            raise ValueError("Efficiencies must be in (0, 1].")
+        if self.max_charge_kw < 0 or self.max_discharge_kw < 0:
+            raise ValueError("Power limits must be non-negative.")
+                         
     @classmethod
     def from_yaml(cls, path: Path) -> "BatterySpec":
         raw = yaml.safe_load(path.read_text())["batterie"]
@@ -58,6 +68,11 @@ def step(state: BatteryState, spec: BatterySpec, action_kw: float, dt_h: float) 
 
     dt_h: Zeitschrittlänge in Stunden
     """
+    if dt_h <= 0:
+        raise ValueError("dt_h must be positive.")
+    if not (spec.soc_min_kwh <= state.soc_kwh <= spec.soc_max_kwh):
+        raise ValueError(f"SoC {state.soc_kwh} außerhalb [{spec.soc_min_kwh}, {spec.soc_max_kwh}].")
+        
     soc_before = state.soc_kwh
 
     if action_kw > 0:
