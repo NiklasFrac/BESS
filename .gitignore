@@ -20,11 +20,5 @@ htmlcov/
 .DS_Store
 Thumbs.db
 
-# Project outputs and downloaded data
-data/*.csv
-results/*
-!data/.gitkeep
-!results/.gitkeep
-
 # Local logs
 *.log
