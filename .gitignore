@@ -1,0 +1,30 @@
+# Python cache and test artifacts
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# Virtual environments and local tooling
+.venv/
+venv/
+env/
+ENV/
+.python-version
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# IDE and OS files
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+
+# Project outputs and downloaded data
+data/*.csv
+results/*
+!data/.gitkeep
+!results/.gitkeep
+
+# Local logs
+*.log

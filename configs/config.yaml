@@ -1,0 +1,69 @@
+logging:
+  level: "INFO"
+  format: "%(asctime)s | %(levelname)-8s | %(name)s | %(message)s"
+  datefmt: "%Y-%m-%d %H:%M:%S"
+
+smard:
+  filter_id: 4169
+  region: "DE-LU"
+  resolution: "hour"
+  base_url: "https://www.smard.de/app/chart_data"
+
+paths:
+  metadata:          "data/metadata_stations.csv"
+  meteo:             "data/dwd_temp_pressure_wind_10min_2020_2024.csv"
+  true_sun_position: "data/true_solar_position_2020_2024_10min.csv"
+  apparent:   "data/apparent_solar_position_2020_2024_10min.csv"
+  solar:    "data/dwd_solar_data_10min_2020_2024.csv"
+  dni:      "data/dni_2020_2024_10min.csv"
+  pvgis: "data/pvgis_horizon_augsburg.csv"
+  poa: "data/poa.csv"
+  smard: "data/smard_day_ahead_de_lu_hourly_2020_2024.csv"
+  effective_irradiance: "data/effective_irradiance.csv"
+  energy: "results/energy_curve.csv"
+
+time:
+  start_utc: "2020-01-01 00:00:00"
+  end_utc:   "2025-01-01 00:00:00"
+  freq:      "10min"
+
+station:
+  id: "00232"
+  name: "Augsburg"
+
+dni:
+  timestamp_col: "timestamp_utc" #???
+  dwd_missing_value: -999.0
+  low_sun_zenith_deg: 88.0
+
+url:
+  air_temp_url: "https://opendata.dwd.de/climate_environment/CDC/observations_germany/climate/10_minutes/air_temperature/historical/10minutenwerte_TU_00232_20200101_20251231_hist.zip"
+  wind_url: "https://opendata.dwd.de/climate_environment/CDC/observations_germany/climate/10_minutes/wind/historical/10minutenwerte_wind_00232_20200101_20251231_hist.zip"
+  metadata:     "https://opendata.dwd.de/climate_environment/CDC/observations_germany/climate/10_minutes/air_temperature/historical/zehn_min_tu_Beschreibung_Stationen.txt"
+  solar: "https://opendata.dwd.de/climate_environment/CDC/observations_germany/climate/10_minutes/solar/historical/10minutenwerte_SOLAR_00232_20200101_20251231_hist.zip"
+
+
+pv:
+  surface_tilt: 20
+  surface_azimuth: 180
+  albedo: 0.20 # surface abh.
+#DC/AC ratio 1.1 bis 2.5
+  module_pdc0: 495.0          # DC-Nennleistung EINES Moduls in W bei STC
+  gamma_pdc: -0.0029   # relativer Leistungsabfall pro °C aus dem Moduldatenblatt
+  module_count: 1584   # Anzahl identischer Module
+inverter:
+  pac0_each: 110000.0     # AC-Nennleistung eines Inverters in W
+  inverter_count: 6       # Anzahl identischer Inverter
+  eta_inv_nom: 0.982      # nominaler Wirkungsgrad
+losses:
+  annual_age_loss_pct: 0.5
+
+
+batterie:
+  capacity_kwh: 100.0
+  soc_min: 0.05
+  soc_max: 0.95
+  max_charge_kw: 50.0
+  max_discharge_kw: 50.0
+  eta_charge: 0.96 
+  eta_discharge: 0.96
