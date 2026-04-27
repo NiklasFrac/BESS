@@ -185,8 +185,8 @@ $$
 
 mit:
 
-- \(\alpha\): Sonnenhoehe
-- \(\theta_z\): Sonnenzenitwinkel
+- $\alpha$: Sonnenhoehe
+- $\theta_z$: Sonnenzenitwinkel
 
 ### 2. Scheinbare Sonnenposition
 
@@ -208,9 +208,9 @@ $$
 
 mit:
 
-- \(\alpha_{app}\): scheinbare Sonnenhoehe
-- \(\alpha_{true}\): geometrische Sonnenhoehe
-- \(\Delta \alpha_{ref}\): Refraktionskorrektur
+- $\alpha_{app}$: scheinbare Sonnenhoehe
+- $\alpha_{true}$: geometrische Sonnenhoehe
+- $\Delta \alpha_{ref}$: Refraktionskorrektur
 
 Falls fuer einen Zeitschritt keine gueltigen Meteodaten vorhanden sind, wird die
 wahre Sonnenposition als Fallback verwendet. Diese Zeilen werden ueber
@@ -230,9 +230,9 @@ $$
 
 Begruendung:
 
-- \(1 m^2 = 10000 cm^2\)
-- \(10 min = 600 s\)
-- \(1 W = 1 J/s\)
+- $1 m^2 = 10000 cm^2$
+- $10 min = 600 s$
+- $1 W = 1 J/s$
 
 Im Code:
 
@@ -251,10 +251,10 @@ $$
 
 mit:
 
-- \(DNI\): Direct Normal Irradiance
-- \(GHI\): Global Horizontal Irradiance
-- \(DHI\): Diffuse Horizontal Irradiance
-- \(\theta_z\): Sonnenzenitwinkel
+- $DNI$: Direct Normal Irradiance
+- $GHI$: Global Horizontal Irradiance
+- $DHI$: Diffuse Horizontal Irradiance
+- $\theta_z$: Sonnenzenitwinkel
 
 Im Code wird dafuer verwendet:
 
@@ -284,9 +284,9 @@ $$
 
 mit:
 
-- \(\varphi_{sun}\): Sonnenazimut
-- \(h_{hor}\): interpolierte Horizonthoehe
-- \(\varphi_i, h_i\): Stuetzpunkte aus dem PVGIS-Horizontprofil
+- $\varphi_{sun}$: Sonnenazimut
+- $h_{hor}$: interpolierte Horizonthoehe
+- $\varphi_i, h_i$: Stuetzpunkte aus dem PVGIS-Horizontprofil
 
 Eine direkte Verschattung liegt vor, wenn:
 
@@ -324,21 +324,23 @@ $$
 G_{POA,direct} = DNI_{shaded} \cdot \max(\cos(\theta_i), 0)
 $$
 
-Der Einfallswinkel \(\theta_i\) ergibt sich aus Sonnenstand und Modulorientierung:
+Der Einfallswinkel $\theta_i$ ergibt sich aus Sonnenstand und Modulorientierung:
 
 $$
-\cos(\theta_i) =
-\cos(\theta_z)\cos(\beta)
-+ \sin(\theta_z)\sin(\beta)\cos(\gamma_s - \gamma_p)
+\begin{aligned}
+\cos(\theta_i) &=
+\cos(\theta_z)\cos(\beta) \\
+&\quad + \sin(\theta_z)\sin(\beta)\cos(\gamma_s - \gamma_p)
+\end{aligned}
 $$
 
 mit:
 
-- \(\theta_i\): Angle of Incidence, Einfallswinkel auf das Modul
-- \(\theta_z\): Sonnenzenit
-- \(\beta\): Modulneigung
-- \(\gamma_s\): Sonnenazimut
-- \(\gamma_p\): Modulazimut
+- $\theta_i$: Angle of Incidence, Einfallswinkel auf das Modul
+- $\theta_z$: Sonnenzenit
+- $\beta$: Modulneigung
+- $\gamma_s$: Sonnenazimut
+- $\gamma_p$: Modulazimut
 
 Im Code wird die gesamte POA-Berechnung ueber `pvlib` ausgefuehrt:
 
@@ -415,12 +417,12 @@ $$
 
 mit:
 
-- \(T_{module}\): Modultemperatur in `deg C`
-- \(T_{air}\): Lufttemperatur in `deg C`
-- \(G_{POA}\): globale POA-Einstrahlung in `W/m^2`
-- \(v_{wind}\): Windgeschwindigkeit
-- \(u_0 = 20.0\)
-- \(u_1 = 5.0\)
+- $T_{module}$: Modultemperatur in `deg C`
+- $T_{air}$: Lufttemperatur in `deg C`
+- $G_{POA}$: globale POA-Einstrahlung in `W/m^2`
+- $v_{wind}$: Windgeschwindigkeit
+- $u_0 = 20.0$
+- $u_1 = 5.0$
 
 Im Code:
 
@@ -447,10 +449,10 @@ $$
 
 mit:
 
-- \(P_{DC,0}\): installierte DC-Nennleistung bei STC
-- \(G_{eff}\): effektive Einstrahlung
-- \(\gamma_{PDC}\): Temperaturkoeffizient der DC-Leistung
-- \(T_{module}\): Modultemperatur
+- $P_{DC,0}$: installierte DC-Nennleistung bei STC
+- $G_{eff}$: effektive Einstrahlung
+- $\gamma_{PDC}$: Temperaturkoeffizient der DC-Leistung
+- $T_{module}$: Modultemperatur
 
 Die installierte DC-Leistung ergibt sich aus:
 
@@ -495,10 +497,10 @@ $$
 
 mit:
 
-- \(r_{age} = 0.5\) Prozentpunkte pro Jahr
-- \(t_{years}\): Jahre seit Simulationsbeginn
+- $r_{age} = 0.5$ Prozentpunkte pro Jahr
+- $t_{years}$: Jahre seit Simulationsbeginn
 
-Aus dem Gesamtverlust \(L\) entsteht der Netto-DC-Faktor:
+Aus dem Gesamtverlust $L$ entsteht der Netto-DC-Faktor:
 
 $$
 f_{loss} = 1 - \frac{L}{100}
@@ -543,7 +545,7 @@ $$
 P_{DC,0,inverter} = \frac{P_{AC,0,total}}{\eta_{inv,nom}}
 $$
 
-Mit \(\eta_{inv,nom} = 0.982\):
+Mit $\eta_{inv,nom} = 0.982$:
 
 $$
 P_{DC,0,inverter} \approx 672097.76 W
