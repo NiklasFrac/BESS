@@ -1,130 +1,129 @@
-import sys
-from pathlib import Path
-
-sys.path.insert(0, str(Path(__file__).parent.parent))
-
 import pytest
-from battery_core import BatterySpec, BatteryState, step
 
-CONFIG = Path(__file__).parent.parent / "configs" / "config.yaml"
-DT_H = 10 / 60  # 10-Minuten Timestep
+from battery_sim.battery_core import step, validate_spec
 
 
-@pytest.fixture
-def spec() -> BatterySpec:
-    return BatterySpec.from_yaml(CONFIG)
+DT_H = 10 / 60  # 10-minute timestep
 
 
-@pytest.fixture
-def state_min(spec) -> BatteryState:
-    return BatteryState.initial(spec)  # SoC = soc_min
+@pytest.fixture()
+def spec() -> dict:
+    return {
+        "capacity_kwh": 100.0,
+        "soc_min": 0.05,
+        "soc_max": 0.95,
+        "max_charge_kw": 50.0,
+        "max_discharge_kw": 50.0,
+        "eta_charge": 0.96,
+        "eta_discharge": 0.96,
+    }
 
 
-@pytest.fixture
-def state_max(spec) -> BatteryState:
-    return BatteryState(soc_kwh=spec.soc_max_kwh)  # SoC = soc_max
+@pytest.fixture()
+def state_min(spec: dict) -> dict:
+    return {"soc_kwh": spec["capacity_kwh"] * spec["soc_min"]}
 
 
-# --- Spec ---
-
-def test_usable_capacity(spec):
-    assert spec.usable_capacity_kwh == pytest.approx(90.0)
-
-
-def test_soc_limits_kwh(spec):
-    assert spec.soc_min_kwh == pytest.approx(5.0)
-    assert spec.soc_max_kwh == pytest.approx(95.0)
+@pytest.fixture()
+def state_max(spec: dict) -> dict:
+    return {"soc_kwh": spec["capacity_kwh"] * spec["soc_max"]}
 
 
-# --- Idle ---
+def test_validate_spec_accepts_valid_spec(spec: dict):
+    validate_spec(spec)
 
-def test_idle_no_change(spec, state_min):
+
+def test_usable_capacity(spec: dict):
+    usable_capacity = spec["capacity_kwh"] * (spec["soc_max"] - spec["soc_min"])
+    assert usable_capacity == pytest.approx(90.0)
+
+
+def test_soc_limits_kwh(spec: dict):
+    assert spec["capacity_kwh"] * spec["soc_min"] == pytest.approx(5.0)
+    assert spec["capacity_kwh"] * spec["soc_max"] == pytest.approx(95.0)
+
+
+def test_idle_no_change(spec: dict, state_min: dict):
     result = step(state_min, spec, action_kw=0.0, dt_h=DT_H)
-    assert result.soc_after_kwh == pytest.approx(state_min.soc_kwh)
-    assert result.charge_ac_kwh == 0.0
-    assert result.discharge_ac_kwh == 0.0
+    assert result["soc_after_kwh"] == pytest.approx(result["soc_before_kwh"])
+    assert result["charge_ac_kwh"] == 0.0
+    assert result["discharge_ac_kwh"] == 0.0
+    assert result["loss_kwh"] == 0.0
 
 
-# --- Laden ---
-
-def test_charge_soc_increases(spec, state_min):
+def test_charge_soc_increases(spec: dict, state_min: dict):
     result = step(state_min, spec, action_kw=50.0, dt_h=DT_H)
-    assert result.soc_after_kwh > result.soc_before_kwh
+    assert result["soc_after_kwh"] > result["soc_before_kwh"]
 
 
-def test_charge_eta_applied(spec, state_min):
-    # 50 kW * (10/60) h = 8.333 kWh vom Netz → 8.333 * 0.96 ins Akku
+def test_charge_eta_applied(spec: dict, state_min: dict):
     result = step(state_min, spec, action_kw=50.0, dt_h=DT_H)
-    expected_delta_soc = 50.0 * DT_H * spec.eta_charge
-    assert result.soc_after_kwh == pytest.approx(result.soc_before_kwh + expected_delta_soc)
+    expected_delta_soc = 50.0 * DT_H * spec["eta_charge"]
+    assert result["soc_after_kwh"] == pytest.approx(result["soc_before_kwh"] + expected_delta_soc)
 
 
-def test_charge_ac_is_grid_energy(spec, state_min):
-    # charge_ac_kwh muss delta_soc / eta ergeben
+def test_charge_ac_is_grid_energy(spec: dict, state_min: dict):
     result = step(state_min, spec, action_kw=50.0, dt_h=DT_H)
-    delta_soc = result.soc_after_kwh - result.soc_before_kwh
-    assert result.charge_ac_kwh == pytest.approx(delta_soc / spec.eta_charge)
+    delta_soc = result["soc_after_kwh"] - result["soc_before_kwh"]
+    assert result["charge_ac_kwh"] == pytest.approx(delta_soc / spec["eta_charge"])
 
 
-def test_charge_capped_at_max_power(spec, state_min):
-    # Anforderung > max_charge_kw → wird auf max_charge_kw geclippt
-    result_max = step(BatteryState(soc_kwh=state_min.soc_kwh), spec, action_kw=spec.max_charge_kw, dt_h=DT_H)
-    result_over = step(BatteryState(soc_kwh=state_min.soc_kwh), spec, action_kw=200.0, dt_h=DT_H)
-    assert result_over.soc_after_kwh == pytest.approx(result_max.soc_after_kwh)
+def test_charge_capped_at_max_power(spec: dict, state_min: dict):
+    result_max = step({"soc_kwh": state_min["soc_kwh"]}, spec, action_kw=spec["max_charge_kw"], dt_h=DT_H)
+    result_over = step({"soc_kwh": state_min["soc_kwh"]}, spec, action_kw=200.0, dt_h=DT_H)
+    assert result_over["soc_after_kwh"] == pytest.approx(result_max["soc_after_kwh"])
+    assert result_over["charge_power_limited_ac_kwh"] > 0.0
 
 
-def test_charge_capped_at_soc_max(spec):
-    # Fast voll → darf soc_max nicht überschreiten
-    state = BatteryState(soc_kwh=spec.soc_max_kwh - 0.1)
+def test_charge_capped_at_soc_max(spec: dict):
+    soc_max_kwh = spec["capacity_kwh"] * spec["soc_max"]
+    state = {"soc_kwh": soc_max_kwh - 0.1}
     result = step(state, spec, action_kw=50.0, dt_h=DT_H)
-    assert result.soc_after_kwh <= spec.soc_max_kwh + 1e-9
+    assert result["soc_after_kwh"] <= soc_max_kwh + 1e-9
 
 
-# --- Entladen ---
-
-def test_discharge_soc_decreases(spec, state_max):
+def test_discharge_soc_decreases(spec: dict, state_max: dict):
     result = step(state_max, spec, action_kw=-50.0, dt_h=DT_H)
-    assert result.soc_after_kwh < result.soc_before_kwh
+    assert result["soc_after_kwh"] < result["soc_before_kwh"]
 
 
-def test_discharge_eta_applied(spec, state_max):
-    # 50 kW angefordert → Batterie gibt 50 * dt / eta ab, Netz bekommt 50 * dt
+def test_discharge_eta_applied(spec: dict, state_max: dict):
     result = step(state_max, spec, action_kw=-50.0, dt_h=DT_H)
-    expected_delta_soc = 50.0 * DT_H / spec.eta_discharge
-    assert result.soc_before_kwh - result.soc_after_kwh == pytest.approx(expected_delta_soc)
+    expected_delta_soc = 50.0 * DT_H / spec["eta_discharge"]
+    assert result["soc_before_kwh"] - result["soc_after_kwh"] == pytest.approx(expected_delta_soc)
 
 
-def test_discharge_ac_is_net_energy(spec, state_max):
-    # discharge_ac_kwh = delta_soc * eta
+def test_discharge_ac_is_net_energy(spec: dict, state_max: dict):
     result = step(state_max, spec, action_kw=-50.0, dt_h=DT_H)
-    delta_soc = result.soc_before_kwh - result.soc_after_kwh
-    assert result.discharge_ac_kwh == pytest.approx(delta_soc * spec.eta_discharge)
+    delta_soc = result["soc_before_kwh"] - result["soc_after_kwh"]
+    assert result["discharge_ac_kwh"] == pytest.approx(delta_soc * spec["eta_discharge"])
 
 
-def test_discharge_capped_at_max_power(spec, state_max):
-    result_max = step(BatteryState(soc_kwh=state_max.soc_kwh), spec, action_kw=-spec.max_discharge_kw, dt_h=DT_H)
-    result_over = step(BatteryState(soc_kwh=state_max.soc_kwh), spec, action_kw=-200.0, dt_h=DT_H)
-    assert result_over.soc_after_kwh == pytest.approx(result_max.soc_after_kwh)
+def test_discharge_capped_at_max_power(spec: dict, state_max: dict):
+    result_max = step({"soc_kwh": state_max["soc_kwh"]}, spec, action_kw=-spec["max_discharge_kw"], dt_h=DT_H)
+    result_over = step({"soc_kwh": state_max["soc_kwh"]}, spec, action_kw=-200.0, dt_h=DT_H)
+    assert result_over["soc_after_kwh"] == pytest.approx(result_max["soc_after_kwh"])
+    assert result_over["discharge_power_limited_ac_kwh"] > 0.0
 
 
-def test_discharge_capped_at_soc_min(spec):
-    # Fast leer → darf soc_min nicht unterschreiten
-    state = BatteryState(soc_kwh=spec.soc_min_kwh + 0.1)
+def test_discharge_capped_at_soc_min(spec: dict):
+    soc_min_kwh = spec["capacity_kwh"] * spec["soc_min"]
+    state = {"soc_kwh": soc_min_kwh + 0.1}
     result = step(state, spec, action_kw=-50.0, dt_h=DT_H)
-    assert result.soc_after_kwh >= spec.soc_min_kwh - 1e-9
+    assert result["soc_after_kwh"] >= soc_min_kwh - 1e-9
 
 
-# --- Energieerhaltung ---
-
-def test_energy_conservation_charge(spec, state_min):
+def test_energy_conservation_charge(spec: dict, state_min: dict):
     result = step(state_min, spec, action_kw=30.0, dt_h=DT_H)
-    delta_soc = result.soc_after_kwh - result.soc_before_kwh
-    losses = result.charge_ac_kwh - delta_soc
-    assert losses >= -1e-9  # keine negativen Verluste
+    delta_soc = result["soc_after_kwh"] - result["soc_before_kwh"]
+    losses = result["charge_ac_kwh"] - delta_soc
+    assert losses == pytest.approx(result["loss_kwh"])
+    assert losses >= -1e-9
 
 
-def test_energy_conservation_discharge(spec, state_max):
+def test_energy_conservation_discharge(spec: dict, state_max: dict):
     result = step(state_max, spec, action_kw=-30.0, dt_h=DT_H)
-    delta_soc = result.soc_before_kwh - result.soc_after_kwh
-    losses = delta_soc - result.discharge_ac_kwh
+    delta_soc = result["soc_before_kwh"] - result["soc_after_kwh"]
+    losses = delta_soc - result["discharge_ac_kwh"]
+    assert losses == pytest.approx(result["loss_kwh"])
     assert losses >= -1e-9

@@ -1,18 +1,18 @@
 # PV-Simulation
 
-Dieser Ordner enthaelt die PV-Erzeugungssimulation des Projekts. Aus DWD-Wetterdaten,
+Dieser Ordner enthält die PV-Erzeugungssimulation des Projekts. Aus DWD-Wetterdaten,
 DWD-Strahlungsdaten, Stationsmetadaten und einem PVGIS-Horizontprofil wird eine
-zeitaufgeloeste AC-Energiezeitreihe fuer die konfigurierte PV-Anlage berechnet.
+zeitaufgelöste AC-Energiezeitreihe für die konfigurierte PV-Anlage berechnet.
 
 Die Simulation ist als Pipeline aufgebaut. Jede Datei erzeugt ein klar abgegrenztes
-Zwischenergebnis, das vom naechsten Schritt weiterverwendet wird.
+Zwischenergebnis, das vom nächsten Schritt weiterverwendet wird.
 
-## Kurzueberblick
+## Kurzüberblick
 
 - Standort: Augsburg
 - Simulationszeitraum: 2020-01-01 00:00 UTC bis 2025-01-01 00:00 UTC
-- Zeitaufloesung: 10 Minuten
-- Modulausrichtung: 180 deg, also Sued
+- Zeitauflösung: 10 Minuten
+- Modulausrichtung: 180 deg, also Süd
 - Modulneigung: 20 deg
 - Eingangsquellen: DWD, PVGIS, lokale Konfiguration
 - Hauptausgabe: `results/energy_curve.csv`
@@ -23,7 +23,7 @@ Die zentralen Parameter stehen in:
 configs/config.yaml
 ```
 
-## Ausfuehren
+## Ausführen
 
 Vom Repository-Root:
 
@@ -31,7 +31,7 @@ Vom Repository-Root:
 python run_pv_sim.py
 ```
 
-Der Runner fuehrt die Schritte in dieser Reihenfolge aus:
+Der Runner führt die Schritte in dieser Reihenfolge aus:
 
 1. `true_pos.py`
 2. `seen_pos.py`
@@ -42,10 +42,10 @@ Der Runner fuehrt die Schritte in dieser Reihenfolge aus:
 7. `visualization/horizon_visual.py`
 8. `visualization/energy_prod_visual.py`
 
-Wenn einzelne Schritte separat ausgefuehrt werden, muss beachtet werden, dass viele
+Wenn einzelne Schritte separat ausgeführt werden, muss beachtet werden, dass viele
 Skripte die CSV-Ausgaben der vorherigen Schritte erwarten.
 
-## Abhaengigkeiten
+## Abhängigkeiten
 
 Die Skripte verwenden diese Python-Pakete:
 
@@ -53,7 +53,7 @@ Die Skripte verwenden diese Python-Pakete:
 pip install pandas numpy pvlib pyyaml matplotlib
 ```
 
-`pvlib` uebernimmt dabei die physikalischen Standardmodelle fuer Sonnenposition,
+`pvlib` übernimmt dabei die physikalischen Standardmodelle für Sonnenposition,
 Einstrahlungszerlegung, POA-Berechnung, Modultemperatur, DC-Leistung und
 Wechselrichtermodell.
 
@@ -112,14 +112,14 @@ pv_sim/
 
 | Datei | Aufgabe | Wichtigste Inputs | Output |
 |---|---|---|---|
-| `true_pos.py` | Berechnet die geometrische Sonnenposition fuer den Standort. | `metadata_stations.csv`, Zeitbereich aus `config.yaml` | `data/true_solar_position_2020_2024_10min.csv` |
-| `seen_pos.py` | Berechnet die scheinbare Sonnenposition unter Beruecksichtigung von Temperatur und Luftdruck. | wahre Sonnenposition, DWD-Meteodaten | `data/apparent_solar_position_2020_2024_10min.csv` |
+| `true_pos.py` | Berechnet die geometrische Sonnenposition für den Standort. | `metadata_stations.csv`, Zeitbereich aus `config.yaml` | `data/true_solar_position_2020_2024_10min.csv` |
+| `seen_pos.py` | Berechnet die scheinbare Sonnenposition unter Berücksichtigung von Temperatur und Luftdruck. | wahre Sonnenposition, DWD-Meteodaten | `data/apparent_solar_position_2020_2024_10min.csv` |
 | `compute_dni.py` | Berechnet Direktnormalstrahlung aus globaler und diffuser horizontaler Strahlung. | DWD-Solardaten, Sonnenzenit | `data/dni_2020_2024_10min.csv` |
 | `compute_poa.py` | Berechnet die Einstrahlung in Modulebene inklusive Horizontverschattung. | DNI/GHI/DHI, scheinbare Sonnenposition, PVGIS-Horizont | `data/poa.csv` |
 | `compute_effective_irradiance.py` | Berechnet Einfallswinkel und effektive Einstrahlung nach IAM-Korrektur. | POA, Sonnenposition, Meteodaten | `data/effective_irradiance.csv` |
 | `modul_sim.py` | Berechnet Modultemperatur, DC-Leistung, Verluste, AC-Leistung und Energie. | POA, effektive Einstrahlung, Meteodaten, PV- und Inverterparameter | `results/energy_curve.csv` |
 | `visualization/horizon_visual.py` | Erstellt eine 3D-Visualisierung des Horizontprofils. | PVGIS-Horizontprofil | `results/horizon_profile.png` |
-| `visualization/energy_prod_visual.py` | Erstellt eine Tagesuebersicht der simulierten Energie. | `energy_curve.csv` | `results/energy_overview.png` |
+| `visualization/energy_prod_visual.py` | Erstellt eine Tagesübersicht der simulierten Energie. | `energy_curve.csv` | `results/energy_overview.png` |
 
 ## Eingangsdaten
 
@@ -127,10 +127,10 @@ Die Pfade werden in `configs/config.yaml` verwaltet.
 
 | Config-Key | Datei | Bedeutung |
 |---|---|---|
-| `paths.metadata` | `data/metadata_stations.csv` | Stations-ID, Stationsname, Breiten- und Laengengrad, Hoehe ueber NN |
+| `paths.metadata` | `data/metadata_stations.csv` | Stations-ID, Stationsname, Breiten- und Längengrad, Höhe über NN |
 | `paths.meteo` | `data/dwd_temp_pressure_wind_10min_2020_2024.csv` | Temperatur, Luftdruck und Wind im 10-Minuten-Raster |
 | `paths.solar` | `data/dwd_solar_data_10min_2020_2024.csv` | DWD-Strahlungsdaten |
-| `paths.pvgis` | `data/pvgis_horizon_augsburg.csv` | Horizonthoehe pro Azimutrichtung |
+| `paths.pvgis` | `data/pvgis_horizon_augsburg.csv` | Horizonthöhe pro Azimutrichtung |
 | `paths.true_sun_position` | `data/true_solar_position_2020_2024_10min.csv` | geometrische Sonnenposition |
 | `paths.apparent` | `data/apparent_solar_position_2020_2024_10min.csv` | scheinbare Sonnenposition |
 | `paths.dni` | `data/dni_2020_2024_10min.csv` | berechnete Direktnormalstrahlung |
@@ -140,18 +140,18 @@ Die Pfade werden in `configs/config.yaml` verwaltet.
 
 ## Zeitmodell
 
-Die Simulation verwendet 10-Minuten-Intervalle. In `true_pos.py` wird fuer jedes
+Die Simulation verwendet 10-Minuten-Intervalle. In `true_pos.py` wird für jedes
 Intervall nicht der Startzeitpunkt, sondern die Intervallmitte als Referenzzeitpunkt
-fuer die Sonnenposition verwendet:
+für die Sonnenposition verwendet:
 
 ```text
 times_ref = times_start + freq / 2
 timestamp_utc = times_start + freq
 ```
 
-Damit beschreibt `timestamp_utc` das Ende des 10-Minuten-Intervalls, waehrend
+Damit beschreibt `timestamp_utc` das Ende des 10-Minuten-Intervalls, während
 `solar_position_reference_utc` die physikalische Referenzzeit in der Intervallmitte
-ist. Das ist sinnvoll, weil DWD-Strahlungswerte die Energiemenge ueber ein Intervall
+ist. Das ist sinnvoll, weil DWD-Strahlungswerte die Energiemenge über ein Intervall
 beschreiben und nicht nur einen instantanen Punktwert am Intervallstart.
 
 ## Mathematisches Modell
@@ -164,20 +164,20 @@ beschreiben und nicht nur einen instantanen Punktwert am Intervallstart.
 pvlib.solarposition.get_solarposition(...)
 ```
 
-Verwendete Standortgroessen:
+Verwendete Standortgrößen:
 
 - geographische Breite `latitude`
-- geographische Laenge `longitude`
-- Stationshoehe `height_m_amsl`
+- geographische Länge `longitude`
+- Stationshöhe `height_m_amsl`
 - Referenzzeit `solar_position_reference_utc`
 
-Erzeugte Groessen:
+Erzeugte Größen:
 
 - Sonnenzenit `solar_zenith_deg`
-- Sonnenhoehe `solar_elevation_deg`
+- Sonnenhöhe `solar_elevation_deg`
 - Sonnenazimut `solar_azimuth_deg`
 
-Zwischen Zenit und Hoehe gilt:
+Zwischen Zenit und Höhe gilt:
 
 $$
 \alpha = 90^\circ - \theta_z
@@ -185,7 +185,7 @@ $$
 
 mit:
 
-- $\alpha$: Sonnenhoehe
+- $\alpha$: Sonnenhöhe
 - $\theta_z$: Sonnenzenitwinkel
 
 ### 2. Scheinbare Sonnenposition
@@ -197,8 +197,8 @@ von `pvlib`:
 pvlib.solarposition.spa_python(...)
 ```
 
-Im Gegensatz zur geometrischen Position wird hier die atmosphaerische Refraktion
-beruecksichtigt. Dafuer werden Temperatur und Luftdruck verwendet.
+Im Gegensatz zur geometrischen Position wird hier die atmosphärische Refraktion
+berücksichtigt. Dafür werden Temperatur und Luftdruck verwendet.
 
 Die Korrektur wird als Differenz gespeichert:
 
@@ -208,19 +208,19 @@ $$
 
 mit:
 
-- $\alpha_{app}$: scheinbare Sonnenhoehe
-- $\alpha_{true}$: geometrische Sonnenhoehe
+- $\alpha_{app}$: scheinbare Sonnenhöhe
+- $\alpha_{true}$: geometrische Sonnenhöhe
 - $\Delta \alpha_{ref}$: Refraktionskorrektur
 
-Falls fuer einen Zeitschritt keine gueltigen Meteodaten vorhanden sind, wird die
-wahre Sonnenposition als Fallback verwendet. Diese Zeilen werden ueber
+Falls für einen Zeitschritt keine gültigen Meteodaten vorhanden sind, wird die
+wahre Sonnenposition als Fallback verwendet. Diese Zeilen werden über
 `met_data_complete` markiert.
 
 ### 3. Umrechnung der DWD-Strahlungswerte
 
-DWD liefert `GS_10` und `DS_10` als Energie pro Flaeche fuer ein 10-Minuten-Intervall.
-Die Einheit ist `J/cm^2`. Fuer die weitere PV-Rechnung wird daraus eine mittlere
-Leistung pro Flaeche in `W/m^2` berechnet.
+DWD liefert `GS_10` und `DS_10` als Energie pro Fläche für ein 10-Minuten-Intervall.
+Die Einheit ist `J/cm^2`. Für die weitere PV-Rechnung wird daraus eine mittlere
+Leistung pro Fläche in `W/m^2` berechnet.
 
 Die Umrechnung ist:
 
@@ -228,7 +228,7 @@ $$
 G_{W/m^2} = E_{J/cm^2} \cdot \frac{10000}{600}
 $$
 
-Begruendung:
+Begründung:
 
 - $1 m^2 = 10000 cm^2$
 - $10 min = 600 s$
@@ -256,19 +256,19 @@ mit:
 - $DHI$: Diffuse Horizontal Irradiance
 - $\theta_z$: Sonnenzenitwinkel
 
-Im Code wird dafuer verwendet:
+Im Code wird dafür verwendet:
 
 ```python
 pvlib.irradiance.dni(...)
 ```
 
-Fehlwerte aus DWD werden ueber den konfigurierten Wert `-999.0` erkannt und als
+Fehlwerte aus DWD werden über den konfigurierten Wert `-999.0` erkannt und als
 `NaN` behandelt.
 
 ### 5. Horizontverschattung
 
-`compute_poa.py` verwendet das PVGIS-Horizontprofil. Dieses enthaelt zu diskreten
-Azimutrichtungen jeweils die Horizonthoehe:
+`compute_poa.py` verwendet das PVGIS-Horizontprofil. Dieses enthält zu diskreten
+Azimutrichtungen jeweils die Horizonthöhe:
 
 ```text
 azimuth_deg, horizon_height_deg
@@ -285,8 +285,8 @@ $$
 mit:
 
 - $\varphi_{sun}$: Sonnenazimut
-- $h_{hor}$: interpolierte Horizonthoehe
-- $\varphi_i, h_i$: Stuetzpunkte aus dem PVGIS-Horizontprofil
+- $h_{hor}$: interpolierte Horizonthöhe
+- $\varphi_i, h_i$: Stützpunkte aus dem PVGIS-Horizontprofil
 
 Eine direkte Verschattung liegt vor, wenn:
 
@@ -294,7 +294,7 @@ $$
 \alpha_{app} \leq h_{hor}(\varphi_{sun})
 $$
 
-Dann wird die direkte Strahlung fuer diesen Zeitschritt auf null gesetzt:
+Dann wird die direkte Strahlung für diesen Zeitschritt auf null gesetzt:
 
 $$
 DNI_{shaded} =
@@ -318,7 +318,7 @@ $$
 G_{POA} = G_{POA,direct} + G_{POA,sky-diffuse} + G_{POA,ground-diffuse}
 $$
 
-Der direkte Anteil haengt vom Einfallswinkel ab:
+Der direkte Anteil hängt vom Einfallswinkel ab:
 
 $$
 G_{POA,direct} = DNI_{shaded} \cdot \max(\cos(\theta_i), 0)
@@ -342,7 +342,7 @@ mit:
 - $\gamma_s$: Sonnenazimut
 - $\gamma_p$: Modulazimut
 
-Im Code wird die gesamte POA-Berechnung ueber `pvlib` ausgefuehrt:
+Im Code wird die gesamte POA-Berechnung über `pvlib` ausgeführt:
 
 ```python
 pvlib.irradiance.get_total_irradiance(
@@ -350,7 +350,7 @@ pvlib.irradiance.get_total_irradiance(
 )
 ```
 
-Das Perez-Driesse-Modell wird fuer die Himmelsdiffusstrahlung verwendet. Zusaetzlich
+Das Perez-Driesse-Modell wird für die Himmelsdiffusstrahlung verwendet. Zusätzlich
 gehen ein:
 
 - `dni_extra`: extraterrestrische Direktstrahlung
@@ -359,8 +359,8 @@ gehen ein:
 
 ### 7. Relative Air Mass
 
-Die relative Air Mass beschreibt die effektive Weglaenge der Sonnenstrahlung durch
-die Atmosphaere relativ zum senkrechten Durchgang.
+Die relative Air Mass beschreibt die effektive Weglänge der Sonnenstrahlung durch
+die Atmosphäre relativ zum senkrechten Durchgang.
 
 Vereinfacht gilt:
 
@@ -374,7 +374,7 @@ In der Simulation wird jedoch die robustere `pvlib`-Berechnung genutzt:
 pvlib.atmosphere.get_relative_airmass(...)
 ```
 
-Diese Groesse wird fuer das Perez-Driesse-Modell und fuer die weitere
+Diese Größe wird für das Perez-Driesse-Modell und für die weitere
 Einstrahlungsmodellierung verwendet.
 
 ### 8. Einfallswinkelverlust und effektive Einstrahlung
@@ -391,7 +391,7 @@ Danach wird ein IAM-Faktor bestimmt:
 pvlib.iam.physical(...)
 ```
 
-IAM steht fuer `Incidence Angle Modifier`. Der Faktor beschreibt, dass ein Modul bei
+IAM steht für `Incidence Angle Modifier`. Der Faktor beschreibt, dass ein Modul bei
 flachem Lichteinfall weniger direkt nutzbare Strahlung absorbiert als bei senkrechtem
 Einfall.
 
@@ -474,7 +474,7 @@ $$
 
 ### 11. Verluste
 
-Die Simulation verwendet `pvlib.pvsystem.pvwatts_losses(...)`. Beruecksichtigt werden:
+Die Simulation verwendet `pvlib.pvsystem.pvwatts_losses(...)`. Berücksichtigt werden:
 
 | Verlustart | Wert |
 |---|---:|
@@ -487,9 +487,9 @@ Die Simulation verwendet `pvlib.pvsystem.pvwatts_losses(...)`. Beruecksichtigt w
 | LID | 1.5 % |
 | Nameplate rating | 1.0 % |
 | Availability | 3.0 % |
-| Age | zeitabhaengig |
+| Age | zeitabhängig |
 
-Die Alterung wird linear ueber die Zeit modelliert:
+Die Alterung wird linear über die Zeit modelliert:
 
 $$
 L_{age}(t) = r_{age} \cdot t_{years}
@@ -538,7 +538,7 @@ $$
 P_{AC,0,total} = 660 kW
 $$
 
-Die fuer PVWatts verwendete DC-Eingangsreferenz des Wechselrichters wird aus der
+Die für PVWatts verwendete DC-Eingangsreferenz des Wechselrichters wird aus der
 nominalen Effizienz bestimmt:
 
 $$
@@ -551,7 +551,7 @@ $$
 P_{DC,0,inverter} \approx 672097.76 W
 $$
 
-Das DC/AC-Verhaeltnis der aktuellen Konfiguration ist:
+Das DC/AC-Verhältnis der aktuellen Konfiguration ist:
 
 $$
 \frac{P_{DC,0,total}}{P_{AC,0,total}}
@@ -561,7 +561,7 @@ $$
 
 ### 13. Energie pro Zeitschritt
 
-Die Energie wird aus der AC-Leistung und der Zeitschrittlaenge berechnet:
+Die Energie wird aus der AC-Leistung und der Zeitschrittlänge berechnet:
 
 $$
 E_{AC,kWh} = \frac{P_{AC,W}}{1000} \cdot \Delta t_h
@@ -599,7 +599,7 @@ $$
 
 ### `data/true_solar_position_2020_2024_10min.csv`
 
-Enthaelt die geometrische Sonnenposition:
+Enthält die geometrische Sonnenposition:
 
 | Spalte | Bedeutung |
 |---|---|
@@ -607,27 +607,27 @@ Enthaelt die geometrische Sonnenposition:
 | `timestamp_utc` | Ende des 10-Minuten-Intervalls |
 | `station_id` | DWD-Stations-ID |
 | `latitude` | Breite |
-| `longitude` | Laenge |
-| `height_m_amsl` | Hoehe ueber NN |
+| `longitude` | Länge |
+| `height_m_amsl` | Höhe über NN |
 | `solar_zenith_deg` | geometrischer Sonnenzenit |
-| `solar_elevation_deg` | geometrische Sonnenhoehe |
+| `solar_elevation_deg` | geometrische Sonnenhöhe |
 | `solar_azimuth_deg` | Sonnenazimut |
 
 ### `data/apparent_solar_position_2020_2024_10min.csv`
 
-Enthaelt die scheinbare Sonnenposition:
+Enthält die scheinbare Sonnenposition:
 
 | Spalte | Bedeutung |
 |---|---|
 | `apparent_zenith_deg` | scheinbarer Sonnenzenit |
-| `apparent_elevation_deg` | scheinbare Sonnenhoehe |
+| `apparent_elevation_deg` | scheinbare Sonnenhöhe |
 | `apparent_azimuth_deg` | scheinbarer Sonnenazimut |
-| `refraction_correction_deg` | atmosphaerische Refraktionskorrektur |
+| `refraction_correction_deg` | atmosphärische Refraktionskorrektur |
 | `met_data_complete` | gibt an, ob Temperatur und Luftdruck vorhanden waren |
 
 ### `data/dni_2020_2024_10min.csv`
 
-Enthaelt die Strahlungskomponenten:
+Enthält die Strahlungskomponenten:
 
 | Spalte | Bedeutung |
 |---|---|
@@ -637,7 +637,7 @@ Enthaelt die Strahlungskomponenten:
 
 ### `data/poa.csv`
 
-Enthaelt die Einstrahlung auf Modulebene. Die wichtigsten Spalten aus `pvlib` sind:
+Enthält die Einstrahlung auf Modulebene. Die wichtigsten Spalten aus `pvlib` sind:
 
 | Spalte | Bedeutung |
 |---|---|
@@ -649,7 +649,7 @@ Enthaelt die Einstrahlung auf Modulebene. Die wichtigsten Spalten aus `pvlib` si
 
 ### `data/effective_irradiance.csv`
 
-Enthaelt die IAM-korrigierte Einstrahlung:
+Enthält die IAM-korrigierte Einstrahlung:
 
 | Spalte | Bedeutung |
 |---|---|
@@ -671,7 +671,7 @@ Finale Zeitreihe der PV-Simulation:
 | `effective_irradiance` | effektive Einstrahlung |
 | `t_module_faiman_c` | Modultemperatur nach Faiman |
 | `p_dc_gross_w` | DC-Bruttoleistung |
-| `age_loss_pct` | zeitabhaengiger Alterungsverlust |
+| `age_loss_pct` | zeitabhängiger Alterungsverlust |
 | `p_dc_net_w` | DC-Nettoleistung nach Verlusten |
 | `p_ac_w` | AC-Leistung nach Wechselrichter |
 | `e_net_ac_kwh` | AC-Energie im Zeitschritt |
@@ -682,50 +682,50 @@ Die Visualisierungen liegen im Ordner `results/`.
 
 ### Horizontprofil
 
-Das Horizontprofil zeigt die Umgebungshoehe abhaengig vom Azimut. Es wird zur
+Das Horizontprofil zeigt die Umgebungshöhe abhängig vom Azimut. Es wird zur
 direkten Horizontverschattung genutzt.
 
 ![Horizontprofil](../results/horizon_profile.png)
 
-### Energieuebersicht
+### Energieübersicht
 
-Die Energieuebersicht aggregiert die 10-Minuten-Ergebnisse auf Tageswerte und zeigt:
+Die Energieübersicht aggregiert die 10-Minuten-Ergebnisse auf Tageswerte und zeigt:
 
-- taegliche AC-Energie
+- tägliche AC-Energie
 - gleitenden 30-Tage-Mittelwert
 - mittlere POA-Einstrahlung
-- taegliche AC-Spitzenleistung
+- tägliche AC-Spitzenleistung
 - Luft- und Modultemperatur
 
-![Energieuebersicht](../results/energy_overview.png)
+![Energieübersicht](../results/energy_overview.png)
 
-## Qualitaetssicherung im Code
+## Qualitätssicherung im Code
 
-Mehrere Skripte pruefen oder stabilisieren die Daten:
+Mehrere Skripte prüfen oder stabilisieren die Daten:
 
 - Pflichtspalten werden validiert, bevor gerechnet wird.
 - DWD-Fehlwerte `-999` werden in `NaN` umgewandelt.
 - Zeitreihen werden nach `timestamp_utc` sortiert.
 - Merges verwenden teilweise `validate="one_to_one"`, damit doppelte Zeitstempel auffallen.
 - Negative Einstrahlungswerte werden vor der POA-Berechnung auf null begrenzt.
-- Fehlende Meteodaten in `seen_pos.py` fuehren zu einem expliziten Fallback auf die wahre Sonnenposition.
-- Horizontazimut wird zyklisch interpoliert, damit der Uebergang von 359 deg auf 0 deg korrekt behandelt wird.
+- Fehlende Meteodaten in `seen_pos.py` führen zu einem expliziten Fallback auf die wahre Sonnenposition.
+- Horizontazimut wird zyklisch interpoliert, damit der Übergang von 359 deg auf 0 deg korrekt behandelt wird.
 
 ## Modellgrenzen
 
-Diese Simulation ist eine technische Naeherung und kein vollstaendiges
+Diese Simulation ist eine technische Näherung und kein vollständiges
 Anlagen- oder Ertragsgutachten.
 
 Wichtige Grenzen:
 
-- Horizontverschattung ist binaer: Die direkte Strahlung wird entweder durchgelassen oder auf null gesetzt.
-- Nahe Verschattung durch Gebaeude, Baeume, Reihenabstaende oder Modulverkabelung wird nicht geometrisch modelliert.
+- Horizontverschattung ist binär: Die direkte Strahlung wird entweder durchgelassen oder auf null gesetzt.
+- Nahe Verschattung durch Gebäude, Bäume, Reihenabstände oder Modulverkabelung wird nicht geometrisch modelliert.
 - Diffuse Verschattung durch den Horizont wird nicht detailliert reduziert.
-- IAM wird vereinfacht ueber `pvlib.iam.physical` berechnet und nicht modulspezifisch kalibriert.
+- IAM wird vereinfacht über `pvlib.iam.physical` berechnet und nicht modulspezifisch kalibriert.
 - Das Faiman-Temperaturmodell nutzt angenommene Koeffizienten.
 - PVWatts ist ein vereinfachtes Leistungsmodell und ersetzt kein detailliertes Ein-Dioden-Modell.
 - Verlustannahmen sind pauschal und nicht aus Messdaten validiert.
-- Schnee, Verschmutzung und Verfuegbarkeit werden nur als pauschale Verlustprozente modelliert.
+- Schnee, Verschmutzung und Verfügbarkeit werden nur als pauschale Verlustprozente modelliert.
 
 ## Typische Anpassungen
 
@@ -739,7 +739,7 @@ station:
   name: "..."
 ```
 
-Zusaetzlich muessen passende DWD-Daten, Stationsmetadaten und ein passendes
+Zusätzlich müssen passende DWD-Daten, Stationsmetadaten und ein passendes
 PVGIS-Horizontprofil vorhanden sein.
 
 ### Andere PV-Anlage simulieren
@@ -759,7 +759,7 @@ inverter:
   eta_inv_nom: 0.982
 ```
 
-Nach einer Aenderung sollten alle Schritte neu ausgefuehrt werden:
+Nach einer Änderung sollten alle Schritte neu ausgeführt werden:
 
 ```bash
 python run_pv_sim.py
@@ -784,12 +784,12 @@ pvlib.pvsystem.pvwatts_losses(
 )
 ```
 
-Wenn diese Werte haeufig angepasst werden sollen, sollten sie in `configs/config.yaml`
+Wenn diese Werte häufig angepasst werden sollen, sollten sie in `configs/config.yaml`
 verschoben werden.
 
 ## Ergebnisinterpretation
 
-Die wichtigste Spalte fuer weitere Analysen ist:
+Die wichtigste Spalte für weitere Analysen ist:
 
 ```text
 results/energy_curve.csv -> e_net_ac_kwh
@@ -801,12 +801,12 @@ $$
 E_{year} = \sum_t E_{AC,kWh,t}
 $$
 
-Die Leistungsspitzen koennen ueber `p_ac_w` analysiert werden:
+Die Leistungsspitzen können über `p_ac_w` analysiert werden:
 
 $$
 P_{AC,max} = \max_t(P_{AC,W,t})
 $$
 
-Fuer Batterie- oder Wirtschaftlichkeitsmodelle sollte in der Regel
-`e_net_ac_kwh` verwendet werden, weil diese Groesse bereits Verluste und
-Wechselrichtermodell enthaelt.
+Für Batterie- oder Wirtschaftlichkeitsmodelle sollte in der Regel
+`e_net_ac_kwh` verwendet werden, weil diese Größe bereits Verluste und
+Wechselrichtermodell enthält.

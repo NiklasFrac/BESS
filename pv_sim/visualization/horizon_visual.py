@@ -9,6 +9,18 @@ import yaml
 mpl.rcParams["axes3d.mouserotationstyle"] = "azel"
 
 
+def _horizon_coordinates(df: pd.DataFrame) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+    az = np.deg2rad(df["azimuth_deg"].to_numpy(dtype=float))
+    z = df["horizon_height_deg"].to_numpy(dtype=float)
+
+    az = np.r_[az, az[0]]
+    z = np.r_[z, z[0]]
+
+    x = np.sin(az)
+    y = np.cos(az)
+    return x, y, z
+
+
 def _find_repo_root(start: Path) -> Path:
     for candidate in (start, *start.parents):
         if (candidate / "data").is_dir():
@@ -24,14 +36,7 @@ def main() -> None:
     plot_path = repo_root / "results" / "horizon_profile.png"
     df = pd.read_csv(path)
 
-    az = np.deg2rad(df["azimuth_deg"].to_numpy())
-    z = df["horizon_height_deg"].to_numpy()
-
-    az = np.r_[az, az[0]]
-    z = np.r_[z, z[0]]
-
-    x = np.sin(az)
-    y = np.cos(az)
+    x, y, z = _horizon_coordinates(df)
 
     fig = plt.figure(figsize=(8, 6))
     ax = fig.add_subplot(111, projection="3d")

@@ -1,0 +1,13 @@
+[project]
+name = "bess"
+version = "0.1.0"
+dependencies = [
+    "matplotlib",
+    "numpy",
+    "pandas",
+    "pvlib",
+    "PyYAML",
+    "pytest",
+    "rainflow",
+    "requests",
+]
