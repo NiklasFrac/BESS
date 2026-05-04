@@ -4,9 +4,6 @@ Dieser Ordner enthält die PV-Erzeugungssimulation des Projekts. Aus DWD-Wetterd
 DWD-Strahlungsdaten, Stationsmetadaten und einem PVGIS-Horizontprofil wird eine
 zeitaufgelöste AC-Energiezeitreihe für die konfigurierte PV-Anlage berechnet.
 
-Die Simulation ist als Pipeline aufgebaut. Jede Datei erzeugt ein klar abgegrenztes
-Zwischenergebnis, das vom nächsten Schritt weiterverwendet wird.
-
 ## Kurzüberblick
 
 - Standort: Augsburg
