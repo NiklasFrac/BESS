@@ -1,10 +1,8 @@
 import logging
 from pathlib import Path
 
-
 import pandas as pd
 import pvlib
-import yaml
 
 
 REQUIRED_COLUMNS = {
@@ -15,15 +13,7 @@ REQUIRED_COLUMNS = {
     "height_m_amsl",
 }
 
-
-def _find_repo_root(start: Path) -> Path:
-    for candidate in (start, *start.parents):
-        if (candidate / "data").is_dir():
-            return candidate
-    raise FileNotFoundError(
-        "Could not find <repo-root>. Expected a parent directory containing a 'data' folder."
-    )
-
+log = logging.getLogger(__name__)
 
 
 def _load_station_row(metadata_path: Path, station_name: str) -> pd.Series:
@@ -43,58 +33,49 @@ def _load_station_row(metadata_path: Path, station_name: str) -> pd.Series:
     matched = df.loc[station_names == normalized_query].copy()
 
     if matched.empty and station_query:
-        matched = df.loc[df["station_id"].astype(str).str.strip() == station_query].copy()
+        matched = df.loc[
+            df["station_id"].astype(str).str.strip() == station_query
+        ].copy()
 
     if matched.empty:
-        raise ValueError(
-            f"Station '{station_name}' not found in {metadata_path}."
-        )
+        raise ValueError(f"Station '{station_name}' not found in {metadata_path}.")
 
     if len(matched) > 1:
-        raise ValueError(
-            f"Station '{station_name}' is not unique in {metadata_path}."
-        )
+        raise ValueError(f"Station '{station_name}' is not unique in {metadata_path}.")
 
     return matched.iloc[0]
 
 
+def compute_true_sun_position(
+    metadata_path: Path,
+    out_path: Path,
+    station_name: str,
+    start_utc: str,
+    end_utc: str,
+    freq: str,
+) -> None:
+    station = _load_station_row(metadata_path, station_name)
 
-def main() -> None:
-    script_path = Path(__file__).resolve()
-    repo_root = _find_repo_root(script_path.parent)
-
-    cfg = yaml.safe_load((repo_root / "configs" / "config.yaml").read_text())
-
-    logging.basicConfig(
-        level=cfg["logging"]["level"],
-        format=cfg["logging"]["format"],
-        datefmt=cfg["logging"]["datefmt"],
-    )
-    logger = logging.getLogger(__name__)
-
-    metadata_path = repo_root / cfg["paths"]["metadata"]
-
-    station = _load_station_row(metadata_path, str(cfg["station"]["name"]))
-
-    latitude  = float(station["latitude"])
+    latitude = float(station["latitude"])
     longitude = float(station["longitude"])
-    altitude  = float(station["height_m_amsl"])
-    start_utc = pd.to_datetime(cfg["time"]["start_utc"], utc=True)
-    end_utc = pd.to_datetime(cfg["time"]["end_utc"], utc=True)
+    altitude = float(station["height_m_amsl"])
 
-    freq = pd.to_timedelta(cfg["time"]["freq"])
-    if freq <= pd.Timedelta(0):
-        raise ValueError(f"Invalid freq: {cfg['time']['freq']}")
+    start_utc = pd.to_datetime(start_utc, utc=True)
+    end_utc = pd.to_datetime(end_utc, utc=True)
+
+    freq_td = pd.to_timedelta(freq)
+    if freq_td <= pd.Timedelta(0):
+        raise ValueError(f"Invalid freq: {freq}")
 
     times_start = pd.date_range(
         start=start_utc,
         end=end_utc,
-        freq=freq,
+        freq=freq_td,
         inclusive="left",
     )
 
-    times_ref = times_start + freq / 2
-    times_end = times_start + freq
+    times_ref = times_start + freq_td / 2
+    times_end = times_start + freq_td
 
     solar_position = pvlib.solarposition.get_solarposition(
         time=times_ref,
@@ -106,27 +87,21 @@ def main() -> None:
     result = pd.DataFrame(
         {
             "solar_position_reference_utc": times_ref,
-            "timestamp_utc":      times_end,
-            "station_id":         str(station["station_id"]),
-            "latitude":           latitude,
-            "longitude":          longitude,
-            "height_m_amsl":      altitude,
-            "solar_zenith_deg":   solar_position["zenith"].to_numpy(),
+            "timestamp_utc": times_end,
+            "station_id": str(station["station_id"]),
+            "latitude": latitude,
+            "longitude": longitude,
+            "height_m_amsl": altitude,
+            "solar_zenith_deg": solar_position["zenith"].to_numpy(),
             "solar_elevation_deg": solar_position["elevation"].to_numpy(),
-            "solar_azimuth_deg":  solar_position["azimuth"].to_numpy(),
+            "solar_azimuth_deg": solar_position["azimuth"].to_numpy(),
         }
     )
 
+    if out_path.exists():
+        log.warning("Output already exists, overwriting: %s", out_path)
 
-    output_path = repo_root / cfg["paths"]["true_sun_position"]
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    result.to_csv(out_path, index=False)
 
-    if output_path.exists():
-        logger.warning("Output already exists, overwriting: %s", output_path)
-        
-    output_path.parent.mkdir(parents=True, exist_ok=True)
-    result.to_csv(output_path, index=False)
-
-    logger.info(f"Wrote {len(result):,} rows to {output_path}")
-
-if __name__ == "__main__":
-    main()
+    log.info("Wrote %d rows to %s", len(result), out_path)

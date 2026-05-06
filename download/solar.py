@@ -71,11 +71,7 @@ def download_dwd_10min_solar(cfg: dict, repo_root: Path) -> None:
     df = df.loc[mask].copy()
     log.info("Geladene Zeilen nach Zeitfilter: %d", len(df))
 
-    preferred_order = ["timestamp_utc", "STATIONS_ID", "QN", "GS_10", "DS_10", "SD_10", "LS_10"]
-    cols = [c for c in preferred_order if c in df.columns] + [
-        c for c in df.columns if c not in preferred_order
-    ]
-    df = df[cols].sort_values("timestamp_utc").reset_index(drop=True)
+    df = df[["timestamp_utc", "GS_10", "DS_10"]].sort_values("timestamp_utc").reset_index(drop=True)
 
     output_path.parent.mkdir(parents=True, exist_ok=True)
     df.to_csv(output_path, index=False)

@@ -9,6 +9,8 @@ import pandas as pd
 import pytest
 import yaml
 
+from battery_sim.degradation import initial_degradation_state
+
 matplotlib.use("Agg")
 
 
@@ -92,3 +94,47 @@ def patch_repo_root(monkeypatch: pytest.MonkeyPatch, pv_test_repo: PvTestRepo):
         monkeypatch.setattr(module, "_find_repo_root", lambda _start: pv_test_repo.root)
 
     return patch
+
+
+@pytest.fixture()
+def valid_degradation_spec() -> dict[str, float]:
+    return {
+        "cycle_fade_per_efc_at_100dod": 0.001,
+        "dod_exponent": 1.5,
+        "cycle_reference_temp_degC": 25.0,
+        "cycle_activation_energy_over_R_K": 4000.0,
+        "calendar_fade_at_1yr": 0.02,
+        "calendar_reference_temp_degC": 25.0,
+        "calendar_activation_energy_over_R_K": 4000.0,
+        "calendar_low_soc_reference": 0.2,
+        "calendar_low_soc_factor": 1.5,
+        "calendar_high_soc_reference": 0.8,
+        "calendar_high_soc_factor": 2.0,
+        "c_rate_exponent": 1.0,
+        "c_rate_reference": 0.5,
+    }
+
+
+@pytest.fixture()
+def fresh_degradation_state() -> dict[str, float]:
+    return initial_degradation_state()
+
+
+@pytest.fixture()
+def degradation_standard_soc() -> list[float]:
+    return [0.5, 0.5, 0.5]
+
+
+@pytest.fixture()
+def degradation_standard_temp() -> list[float]:
+    return [25.0, 25.0, 25.0]
+
+
+@pytest.fixture()
+def degradation_standard_power() -> list[float]:
+    return [0.0, 0.0, 0.0]
+
+
+@pytest.fixture()
+def nominal_capacity_kwh() -> float:
+    return 100.0

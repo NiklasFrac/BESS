@@ -2,11 +2,11 @@ from pathlib import Path
 
 import matplotlib.pyplot as plt
 import pandas as pd
-import yaml
 
 
 def _daily_summary(df: pd.DataFrame) -> pd.DataFrame:
     df = df.copy()
+
     if "timestamp_utc" in df.columns:
         df["timestamp_utc"] = pd.to_datetime(df["timestamp_utc"], utc=True)
         df = df.sort_values("timestamp_utc").set_index("timestamp_utc")
@@ -18,24 +18,16 @@ def _daily_summary(df: pd.DataFrame) -> pd.DataFrame:
         TT_10=("TT_10", "mean"),
         t_module_faiman_c=("t_module_faiman_c", "mean"),
     )
+
     daily["e_net_ac_kwh_30d"] = daily["e_net_ac_kwh"].rolling(30, min_periods=1).mean()
     return daily
 
 
-def _find_repo_root(start: Path) -> Path:
-    for candidate in (start, *start.parents):
-        if (candidate / "data").is_dir():
-            return candidate
-    raise FileNotFoundError("Could not find repo root with 'data' folder.")
-
-
-def main() -> None:
-    repo_root = _find_repo_root(Path(__file__).resolve().parent)
-    cfg = yaml.safe_load((repo_root / "configs" / "config.yaml").read_text())
-
-    energy_path = repo_root / cfg["paths"]["energy"]
-    plot_path = repo_root / "results" / "energy_overview.png"
-
+def plot_energy_overview(
+    energy_path: Path,
+    plot_path: Path,
+    show: bool = False,
+) -> None:
     df = pd.read_csv(
         energy_path,
         parse_dates=["timestamp_utc"],
@@ -69,8 +61,8 @@ def main() -> None:
     plot_path.parent.mkdir(parents=True, exist_ok=True)
     fig.tight_layout()
     fig.savefig(plot_path, dpi=150, bbox_inches="tight")
-    plt.show()
 
+    if show:
+        plt.show()
 
-if __name__ == "__main__":
-    main()
+    plt.close(fig)

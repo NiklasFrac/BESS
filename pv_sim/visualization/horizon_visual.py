@@ -4,7 +4,6 @@ import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-import yaml
 
 mpl.rcParams["axes3d.mouserotationstyle"] = "azel"
 
@@ -21,20 +20,13 @@ def _horizon_coordinates(df: pd.DataFrame) -> tuple[np.ndarray, np.ndarray, np.n
     return x, y, z
 
 
-def _find_repo_root(start: Path) -> Path:
-    for candidate in (start, *start.parents):
-        if (candidate / "data").is_dir():
-            return candidate
-    raise FileNotFoundError("Could not find repo root with 'data' folder.")
-
-
-def main() -> None:
-    repo_root = _find_repo_root(Path(__file__).resolve().parent)
-    cfg = yaml.safe_load((repo_root / "configs" / "config.yaml").read_text())
-
-    path = repo_root / cfg["paths"]["pvgis"]
-    plot_path = repo_root / "results" / "horizon_profile.png"
-    df = pd.read_csv(path)
+def plot_horizon_profile(
+    horizon_path: Path,
+    plot_path: Path,
+    station_name: str,
+    show: bool = False,
+) -> None:
+    df = pd.read_csv(horizon_path)
 
     x, y, z = _horizon_coordinates(df)
 
@@ -52,15 +44,15 @@ def main() -> None:
     ax.set_xlabel("Ost")
     ax.set_ylabel("Nord")
     ax.set_zlabel("Horizonthoehe [deg]")
-    ax.set_title(f"3D-Horizontprofil {cfg['station']['name']}")
+    ax.set_title(f"3D-Horizontprofil {station_name}")
     ax.set_box_aspect((1, 1, 0.5))
     ax.view_init(elev=25, azim=-60)
 
     plot_path.parent.mkdir(parents=True, exist_ok=True)
     fig.tight_layout()
     fig.savefig(plot_path, dpi=150, bbox_inches="tight")
-    plt.show()
 
+    if show:
+        plt.show()
 
-if __name__ == "__main__":
-    main()
+    plt.close(fig)

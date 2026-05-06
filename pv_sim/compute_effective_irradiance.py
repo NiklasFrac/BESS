@@ -1,24 +1,18 @@
 from pathlib import Path
 
-import yaml
-import pvlib
 import pandas as pd
+import pvlib
 
-def _find_repo_root(start: Path) -> Path:
-    for candidate in (start, *start.parents):
-        if (candidate / "data").is_dir():
-            return candidate
-    raise FileNotFoundError("Could not find repo root with 'data' folder.")
 
-def main() -> None:
-    repo_root = _find_repo_root(Path(__file__).resolve().parent)
-    cfg = yaml.safe_load((repo_root / "configs" / "config.yaml").read_text())
-
-    surface_tilt = cfg["pv"]["surface_tilt"]
-    surface_azimuth = cfg["pv"]["surface_azimuth"]
-    true_sun_path = repo_root / cfg["paths"]["true_sun_position"]
-    poa_path = repo_root / cfg["paths"]["poa"]
-
+def compute_effective_irradiance(
+    true_sun_path: Path,
+    apparent_path: Path,
+    meteo_path: Path,
+    poa_path: Path,
+    out_path: Path,
+    surface_tilt: float,
+    surface_azimuth: float,
+) -> None:
     df = pd.read_csv(
         true_sun_path,
         usecols=["timestamp_utc", "solar_zenith_deg", "solar_azimuth_deg"],
@@ -31,9 +25,6 @@ def main() -> None:
         solar_zenith=df["solar_zenith_deg"],
         solar_azimuth=df["solar_azimuth_deg"],
     )
-
-    apparent_path = repo_root / cfg["paths"]["apparent"]
-    meteo_path = repo_root / cfg["paths"]["meteo"]
 
     apparent_df = pd.read_csv(
         apparent_path,
@@ -70,12 +61,8 @@ def main() -> None:
 
     df = df.merge(poa_df, on="timestamp_utc", how="left")
 
-    #Approx
     df["iam"] = pvlib.iam.physical(df["aoi_deg"])
     df["effective_irradiance"] = df["poa_direct"] * df["iam"] + df["poa_diffuse"]
 
-    out_path = repo_root / cfg["paths"]["effective_irradiance"]
     out_path.parent.mkdir(parents=True, exist_ok=True)
     df.to_csv(out_path, index=False)
-if __name__ == "__main__":
-    main()

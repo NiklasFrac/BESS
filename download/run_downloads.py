@@ -8,6 +8,7 @@ from download.meta_data import download_station_metadata
 from download.solar import download_dwd_10min_solar
 from download.smard import download_smard_day_ahead_prices
 from download.weather import download_dwd_temp_pressure_wind
+from download.weather_fc import download_open_meteo_forecast
 
 def _find_repo_root(start: Path) -> Path:
     for candidate in (start, *start.parents):
@@ -29,6 +30,7 @@ def main() -> None:
         ("DWD Metadaten Download", lambda: download_station_metadata(cfg, repo_root)),
         ("DWD Wetter Download", lambda: download_dwd_temp_pressure_wind(cfg, repo_root)),
         ("DWD Solar Download", lambda: download_dwd_10min_solar(cfg, repo_root)),
+        ("Open-Meteo Forecast Download", lambda: download_open_meteo_forecast(cfg, repo_root)),
         ("PVGIS Horizont Download", lambda: download_pvgis_horizon(cfg, repo_root)),
         ("SMARD Download", lambda: download_smard_day_ahead_prices(cfg, repo_root)),
     ]

@@ -96,17 +96,14 @@ def download_dwd_temp_pressure_wind(
     temp = _read_dwd_product(cfg["url"]["air_temp_url"], station_id, start_utc, end_utc)
     wind = _read_dwd_product(cfg["url"]["wind_url"],     station_id, start_utc, end_utc)
 
-    temp = temp.rename(columns={"QN": "QN_TU"})
-    wind = wind.rename(columns={"QN": "QN_WIND"})
-
-    df = temp[["timestamp_utc", "QN_TU", "TT_10", "PP_10"]].merge(
-        wind[["timestamp_utc", "QN_WIND", "FF_10"]],
+    df = temp[["timestamp_utc", "TT_10", "PP_10"]].merge(
+        wind[["timestamp_utc", "FF_10"]],
         on="timestamp_utc",
         how="inner",
         validate="one_to_one",
     )
 
-    df = df[["timestamp_utc", "TT_10", "PP_10", "FF_10", "QN_TU", "QN_WIND"]].sort_values("timestamp_utc").reset_index(drop=True)
+    df = df[["timestamp_utc", "TT_10", "PP_10", "FF_10"]].sort_values("timestamp_utc").reset_index(drop=True)
 
     output_file.parent.mkdir(parents=True, exist_ok=True)
     df.to_csv(output_file, index=False)

@@ -5,9 +5,25 @@ dependencies = [
     "matplotlib",
     "numpy",
     "pandas",
+    "pyomo",
     "pvlib",
     "PyYAML",
     "pytest",
     "rainflow",
     "requests",
+]
+
+[build-system]
+requires = ["setuptools>=64"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+py-modules = ["energy_cost", "runner"]
+
+[tool.setuptools.packages.find]
+include = [
+    "battery_sim*",
+    "download*",
+    "optimizer*",
+    "pv_sim*",
 ]
