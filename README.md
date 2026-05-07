@@ -1,31 +1,31 @@
-# EMS - Projektuebersicht
+# EMS - Projektübersicht
 
 Aktuell dokumentiert sind nur die fertigeren Projektteile `download/` und `pv_sim/`.
-Der komplette Lauf startet ueber `python proof_of_concept.py`: zuerst werden die
+Der komplette Lauf startet über `python proof_of_concept.py`: zuerst werden die
 Eingangsdaten geladen, danach wird daraus die PV-Erzeugung simuliert.
 
 ## 1. Downloader (`download/`)
 
-Die Downloader lesen `configs/config.yaml`, laden die externen Daten fuer die
+Die Downloader lesen `configs/config.yaml`, laden die externen Daten für die
 Station Augsburg Bayern (`00232`) und schreiben sie unter `data/pv/...`.
 
 | Datei | Zweck | Output |
 | --- | --- | --- |
 | `download/run_downloads.py` | Orchestriert alle Downloads in der richtigen Reihenfolge. | keine eigene Datei |
-| `download/meta_data.py` | Laedt DWD-Stationsmetadaten mit ID, Name, Breite, Laenge und Hoehe; Basis fuer Standort und PVGIS-Horizont. | `data/pv/general/metadata_stations.csv` |
-| `download/weather.py` | Laedt DWD-10-Minuten-Wetterdaten: Lufttemperatur `TT_10`, Luftdruck `PP_10`, Wind `FF_10`; noetig fuer scheinbare Sonnenposition und Modultemperatur. | `data/pv/actual/dwd_meteo.csv` |
-| `download/solar.py` | Laedt DWD-10-Minuten-Solardaten: Globalstrahlung `GS_10` und diffuse Strahlung `DS_10`; Input fuer DNI und Einstrahlung auf die Modulebene. | `data/pv/actual/dwd_solar_data.csv` |
-| `download/horizon.py` | Laedt aus PVGIS das lokale Horizontprofil auf Basis der Stationskoordinaten; spaeter zur Abschattung der Direktstrahlung. | `data/pv/general/pvgis_horizon_augsburg.csv` |
+| `download/meta_data.py` | Lädt DWD-Stationsmetadaten mit ID, Name, Breite, Länge und Höhe; Basis für Standort und PVGIS-Horizont. | `data/pv/general/metadata_stations.csv` |
+| `download/weather.py` | Lädt DWD-10-Minuten-Wetterdaten: Lufttemperatur `TT_10`, Luftdruck `PP_10`, Wind `FF_10`; nötig für scheinbare Sonnenposition und Modultemperatur. | `data/pv/actual/dwd_meteo.csv` |
+| `download/solar.py` | Lädt DWD-10-Minuten-Solardaten: Globalstrahlung `GS_10` und diffuse Strahlung `DS_10`; Input für DNI und Einstrahlung auf die Modulebene. | `data/pv/actual/dwd_solar_data.csv` |
+| `download/horizon.py` | Lädt aus PVGIS das lokale Horizontprofil auf Basis der Stationskoordinaten; später zur Abschattung der Direktstrahlung. | `data/pv/general/pvgis_horizon_augsburg.csv` |
 
 ## 2. PV-Simulation (`pv_sim/`)
 
-`pv_sim/runner.py` fuehrt die Pipeline chronologisch aus. Die wichtigsten
+`pv_sim/runner.py` führt die Pipeline chronologisch aus. Die wichtigsten
 Parameter kommen aus `configs/config.yaml`: Zeitraum, 10-Minuten-Frequenz,
 Modulausrichtung, Modulanzahl, Wechselrichterdaten und Verlustannahmen.
 
 ### Ablauf
 
-1. `true_pos.py` berechnet die geometrische Sonnenposition fuer den Standort.
+1. `true_pos.py` berechnet die geometrische Sonnenposition für den Standort.
    Der Rechenzeitpunkt liegt in der Intervallmitte, der Output-Zeitstempel am
    Intervallende:
 
@@ -60,7 +60,7 @@ Modulausrichtung, Modulanzahl, Wechselrichterdaten und Verlustannahmen.
 
    Output: `data/pv/actual/dni.csv` mit `ghi_wm2`, `dhi_wm2`, `dni_wm2`.
 
-4. `compute_poa.py` interpoliert zuerst die Horizonthoehe auf den aktuellen
+4. `compute_poa.py` interpoliert zuerst die Horizonthöhe auf den aktuellen
    Sonnenazimut. Liegt die Sonne unter dem Horizontprofil, wird die
    Direktstrahlung auf 0 gesetzt:
 
@@ -82,7 +82,7 @@ Modulausrichtung, Modulanzahl, Wechselrichterdaten und Verlustannahmen.
    ![Horizon Plot](data/visualisation/horizon_plot.png)
 
 5. `compute_effective_irradiance.py` berechnet den Einfallswinkel auf das Modul
-   und reduziert den Direktanteil ueber den IAM-Faktor:
+   und reduziert den Direktanteil über den IAM-Faktor:
 
    ```text
    cos(AOI) = cos(theta_z) * cos(beta)
@@ -110,16 +110,16 @@ Modulausrichtung, Modulanzahl, Wechselrichterdaten und Verlustannahmen.
    Output: `data/pv/actual/energy_curve.csv`.
 
 7. `visualization/energy_prod_visual.py` aggregiert die Energiekurve auf
-   Tageswerte und plottet zusaetzlich einen 14-Tage-Mittelwert.
+   Tageswerte und plottet zusätzlich einen 14-Tage-Mittelwert.
    `visualization/horizon_visual.py` visualisiert das PVGIS-Horizontprofil.
 
 ### Finaler Output
 
-Die wichtigste Ergebnisdatei ist `data/pv/actual/energy_curve.csv`. Sie enthaelt
+Die wichtigste Ergebnisdatei ist `data/pv/actual/energy_curve.csv`. Sie enthält
 pro 10-Minuten-Zeitpunkt unter anderem:
 
 - `poa_global`: Einstrahlung auf Modulebene
-- `effective_irradiance`: fuer das Modul wirksame Einstrahlung
+- `effective_irradiance`: für das Modul wirksame Einstrahlung
 - `t_module_faiman_c`: berechnete Modultemperatur
 - `p_dc_gross_w` / `p_dc_net_w`: DC-Leistung vor und nach Verlusten
 - `p_ac_w`: AC-Leistung nach Wechselrichter

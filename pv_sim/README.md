@@ -6,7 +6,7 @@ kommen aus `download/` und `configs/config.yaml`; orchestriert wird alles in
 
 ## Chronologischer Ablauf
 
-1. `true_pos.py` berechnet die geometrische Sonnenposition fuer den Standort.
+1. `true_pos.py` berechnet die geometrische Sonnenposition für den Standort.
    Der Rechenzeitpunkt liegt in der Intervallmitte, der Output-Zeitstempel am
    Intervallende:
 
@@ -40,7 +40,7 @@ kommen aus `download/` und `configs/config.yaml`; orchestriert wird alles in
 
    Output: `data/pv/actual/dni.csv` mit `ghi_wm2`, `dhi_wm2`, `dni_wm2`.
 
-4. `compute_poa.py` interpoliert die Horizonthoehe auf den Sonnenazimut. Wenn
+4. `compute_poa.py` interpoliert die Horizonthöhe auf den Sonnenazimut. Wenn
    die Sonne hinter dem Horizont liegt, wird die Direktstrahlung entfernt:
 
    ```text
@@ -55,7 +55,7 @@ kommen aus `download/` und `configs/config.yaml`; orchestriert wird alles in
    ![Horizon Plot](../data/visualisation/horizon_plot.png)
 
 5. `compute_effective_irradiance.py` berechnet den Einfallswinkel auf das Modul
-   und reduziert den Direktanteil ueber den IAM-Faktor:
+   und reduziert den Direktanteil über den IAM-Faktor:
 
    ```text
    cos(AOI) = cos(theta_z) * cos(beta)
@@ -87,7 +87,7 @@ kommen aus `download/` und `configs/config.yaml`; orchestriert wird alles in
 
 ## Finaler Output
 
-Die wichtigste Ergebnisdatei ist `data/pv/actual/energy_curve.csv`. Sie enthaelt
+Die wichtigste Ergebnisdatei ist `data/pv/actual/energy_curve.csv`. Sie enthält
 pro 10-Minuten-Zeitpunkt `poa_global`, `effective_irradiance`,
 `t_module_faiman_c`, `p_dc_gross_w`, `p_dc_net_w`, `p_ac_w` und
 `e_net_ac_kwh`.
