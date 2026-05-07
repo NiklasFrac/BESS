@@ -1,9 +1,5 @@
 # EMS - Projektübersicht
 
-Aktuell dokumentiert sind nur die fertigeren Projektteile `download/` und `pv_sim/`.
-Der komplette Lauf startet über `python proof_of_concept.py`: zuerst werden die
-Eingangsdaten geladen, danach wird daraus die PV-Erzeugung simuliert.
-
 ## 1. Downloader (`download/`)
 
 Die Downloader lesen `configs/config.yaml`, laden die externen Daten für die
