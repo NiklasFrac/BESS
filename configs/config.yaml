@@ -15,7 +15,6 @@ time:
   start_utc: "2024-01-01 00:00:00"
   end_utc: "2025-01-01 00:00:00"
   freq: "10min"              # Solar / Energy data
-  freq_fc: "minutely_15"           # Forecast download granularity: "hourly" or "minutely_15"
   interval_minutes: 15       # Firm data
   
 
@@ -26,89 +25,6 @@ station:
   id: "00232"
   name: "Augsburg Bayern"
 
-
-# =============================================================================
-# URLs
-# =============================================================================
-url:
-  air_temp_url: "https://opendata.dwd.de/climate_environment/CDC/observations_germany/climate/10_minutes/air_temperature/historical/10minutenwerte_TU_00232_20200101_20251231_hist.zip"
-  wind_url: "https://opendata.dwd.de/climate_environment/CDC/observations_germany/climate/10_minutes/wind/historical/10minutenwerte_wind_00232_20200101_20251231_hist.zip"
-  metadata: "https://opendata.dwd.de/climate_environment/CDC/observations_germany/climate/10_minutes/air_temperature/historical/zehn_min_tu_Beschreibung_Stationen.txt"
-  solar: "https://opendata.dwd.de/climate_environment/CDC/observations_germany/climate/10_minutes/solar/historical/10minutenwerte_SOLAR_00232_20200101_20251231_hist.zip"
-  weather_forecast: "https://previous-runs-api.open-meteo.com/v1/forecast"
-
-# =============================================================================
-# Paths
-# =============================================================================
-paths:
-  # ---------------------------------------------------------------------------
-  # General
-  # ---------------------------------------------------------------------------
-  metadata: "data/pv/general/metadata_stations.csv"
-  pvgis: "data/pv/general/pvgis_horizon_augsburg.csv"
-
-  # ---------------------------------------------------------------------------
-  # Forecast PV
-  # ---------------------------------------------------------------------------
-  meteo_fc: "data/pv/forecast/meteo.csv"
-  solar_fc: "data/pv/forecast/solar_data.csv"
-
-  true_sun_position_fc: "data/pv/forecast/true_sp_15min.csv"
-  apparent_fc: "data/pv/forecast/apparent_sp.csv"
-  dni_fc: "data/pv/forecast/dni.csv"
-  poa_fc: "data/pv/forecast/poa.csv"
-  effective_irradiance_fc: "data/pv/forecast/effective_irradiance.csv"
-  energy_fc: "data/pv/forecast/energy_curve.csv"
-
-  # ---------------------------------------------------------------------------
-  # Actual PV
-  # ---------------------------------------------------------------------------
-  meteo: "data/pv/actual/dwd_meteo.csv"
-  solar: "data/pv/actual/dwd_solar_data.csv"
-
-  true_sun_position: "data/pv/actual/true_sp_10min.csv"
-  apparent: "data/pv/actual/apparent_sp.csv"
-  dni: "data/pv/actual/dni.csv"
-  poa: "data/pv/actual/poa.csv"
-  effective_irradiance: "data/pv/actual/effective_irradiance.csv"
-  energy: "data/pv/actual/energy_curve.csv"
-
-  # ---------------------------------------------------------------------------
-  # Visual
-  # ---------------------------------------------------------------------------
-  energy_plot: "data/visualisation/energy_plot.png"
-  horizon_plot: "data/visualisation/horizon_plot.png"
-  energy_plot_fc: "data/visualisation/energy_plot_fc.png"
-
-
-  # ---------------------------------------------------------------------------
-  # Market Data
-  # ---------------------------------------------------------------------------
-  smard: "data/market/day_ahead.csv"
-
-  # ---------------------------------------------------------------------------
-  # Firm Data
-  # ---------------------------------------------------------------------------
-  raw: "data/firm/LoadProfile_30IPs_2017.csv"
-  costs: "data/firm/annual_energy_costs_2017.csv"
-  test: "data/firm/LoadProfile_20IPs_2016.csv"
-  raw_utc: "data/firm/raw.csv"
-  test_utc: "data/firm/test.csv"
-  
-  # ---------------------------------------------------------------------------
-  # Battery
-  # ---------------------------------------------------------------------------
-  bat_sim: "data/battery/battery_sim.parquet"
-  bat_temp: "data/battery/battery_temperature.parquet"
-  bat_degradation: "data/battery/battery_degradation.csv"
-# =============================================================================
-# SMARD Market Data
-# =============================================================================
-smard:
-  filter_id: 4169
-  region: "DE-LU"
-  resolution: "hour"
-  base_url: "https://www.smard.de/app/chart_data"
 
 # =============================================================================
 # DNI
@@ -137,7 +53,7 @@ pv:
 # =============================================================================
 inverter:
   pac0_each: 110000.0        # AC-Nennleistung eines Inverters in W
-  inverter_count: 12          
+  inverter_count: 8          
   eta_inv_nom: 0.98         
 
 
@@ -149,12 +65,61 @@ losses:
 
 
 # =============================================================================
+# URLs
+# =============================================================================
+url:
+  air_temp_url: "https://opendata.dwd.de/climate_environment/CDC/observations_germany/climate/10_minutes/air_temperature/historical/10minutenwerte_TU_00232_20200101_20251231_hist.zip"
+  wind_url: "https://opendata.dwd.de/climate_environment/CDC/observations_germany/climate/10_minutes/wind/historical/10minutenwerte_wind_00232_20200101_20251231_hist.zip"
+  metadata: "https://opendata.dwd.de/climate_environment/CDC/observations_germany/climate/10_minutes/air_temperature/historical/zehn_min_tu_Beschreibung_Stationen.txt"
+  solar: "https://opendata.dwd.de/climate_environment/CDC/observations_germany/climate/10_minutes/solar/historical/10minutenwerte_SOLAR_00232_20200101_20251231_hist.zip"
+
+# =============================================================================
+# Paths
+# =============================================================================
+paths:
+  # ---------------------------------------------------------------------------
+  # General
+  # ---------------------------------------------------------------------------
+  metadata: "data/pv/general/metadata_stations.csv"
+  pvgis: "data/pv/general/pvgis_horizon_augsburg.csv"
+
+  meteo: "data/pv/actual/dwd_meteo.csv"
+  solar: "data/pv/actual/dwd_solar_data.csv"
+
+  true_sun_position: "data/pv/actual/true_sp_10min.csv"
+  apparent: "data/pv/actual/apparent_sp.csv"
+  dni: "data/pv/actual/dni.csv"
+  poa: "data/pv/actual/poa.csv"
+  effective_irradiance: "data/pv/actual/effective_irradiance.csv"
+  energy: "data/pv/actual/energy_curve.csv"
+
+  energy_plot: "data/visualisation/energy_plot.png"
+  horizon_plot: "data/visualisation/horizon_plot.png"
+
+
+  # ---------------------------------------------------------------------------
+  # Firm Data
+  # ---------------------------------------------------------------------------
+  raw: "data/firm/LoadProfile_30IPs_2017.csv"
+  costs: "data/firm/annual_energy_costs_2017.csv"
+  test: "data/firm/LoadProfile_20IPs_2016.csv"
+  raw_utc: "data/firm/raw.csv"
+  test_utc: "data/firm/test.csv"
+  
+  # ---------------------------------------------------------------------------
+  # Battery
+  # ---------------------------------------------------------------------------
+  bat_sim: "data/battery/battery_sim.parquet"
+  bat_temp: "data/battery/battery_temperature.parquet"
+  bat_degradation: "data/battery/battery_degradation.csv"
+
+
+# =============================================================================
 # Energy Cost / Tariff
 # =============================================================================
 tariff:
   energy_price_eur_per_kwh: 0.25
   demand_charge_eur_per_kw_year: 100.0
-
 
 # =============================================================================
 # Battery

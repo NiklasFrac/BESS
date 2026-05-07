@@ -13,13 +13,12 @@ def _daily_summary(df: pd.DataFrame) -> pd.DataFrame:
 
     daily = df.resample("D").agg(
         e_net_ac_kwh=("e_net_ac_kwh", "sum"),
-        poa_global=("poa_global", "mean"),
-        p_ac_w=("p_ac_w", "max"),
-        TT_10=("TT_10", "mean"),
-        t_module_faiman_c=("t_module_faiman_c", "mean"),
     )
 
-    daily["e_net_ac_kwh_30d"] = daily["e_net_ac_kwh"].rolling(30, min_periods=1).mean()
+    daily["e_net_ac_kwh_14d"] = daily["e_net_ac_kwh"].rolling(
+        14, min_periods=1
+    ).mean()
+
     return daily
 
 
@@ -35,32 +34,30 @@ def plot_energy_overview(
 
     daily = _daily_summary(df)
 
-    fig, axes = plt.subplots(4, 1, figsize=(14, 12), sharex=True)
+    fig, ax = plt.subplots(figsize=(13, 5), constrained_layout=True)
 
-    axes[0].plot(daily.index, daily["e_net_ac_kwh"], linewidth=0.8, alpha=0.7)
-    axes[0].plot(daily.index, daily["e_net_ac_kwh_30d"], linewidth=1.5)
-    axes[0].set_ylabel("kWh/Tag")
-    axes[0].set_title("PV-System Overview")
-    axes[0].grid(True, alpha=0.3)
+    ax.plot(
+        daily.index,
+        daily["e_net_ac_kwh"],
+        linewidth=0.8,
+        alpha=0.35,
+        label="Daily energy",
+    )
+    ax.plot(
+        daily.index,
+        daily["e_net_ac_kwh_14d"],
+        linewidth=2.0,
+        label="14d rolling mean",
+    )
 
-    axes[1].plot(daily.index, daily["poa_global"], linewidth=0.8)
-    axes[1].set_ylabel("POA [W/m²]")
-    axes[1].grid(True, alpha=0.3)
-
-    axes[2].plot(daily.index, daily["p_ac_w"] / 1000.0, linewidth=0.8)
-    axes[2].set_ylabel("AC Peak [kW]")
-    axes[2].grid(True, alpha=0.3)
-
-    axes[3].plot(daily.index, daily["TT_10"], linewidth=0.8, label="Air temp")
-    axes[3].plot(daily.index, daily["t_module_faiman_c"], linewidth=0.8, label="Module temp")
-    axes[3].set_ylabel("Temperature [°C]")
-    axes[3].set_xlabel("Time")
-    axes[3].legend()
-    axes[3].grid(True, alpha=0.3)
+    ax.set_title("PV Energy Overview")
+    ax.set_ylabel("Energy [kWh/day]")
+    ax.set_xlabel("Time")
+    ax.grid(True, alpha=0.3)
+    ax.legend()
 
     plot_path.parent.mkdir(parents=True, exist_ok=True)
-    fig.tight_layout()
-    fig.savefig(plot_path, dpi=150, bbox_inches="tight")
+    fig.savefig(plot_path, dpi=180, bbox_inches="tight")
 
     if show:
         plt.show()
