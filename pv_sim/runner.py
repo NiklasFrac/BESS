@@ -1,3 +1,4 @@
+import logging
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -49,7 +50,10 @@ class PvSimParams:
     eta_inv_nom: float
 
 
-def run_pv_sim(paths: PvSimPaths, params: PvSimParams) -> None:
+def run_pv_sim(paths: PvSimPaths, params: PvSimParams, logging_config: dict | None = None) -> None:
+    if logging_config is not None:
+        logging.basicConfig(**logging_config, force=True)
+
     compute_true_sun_position(
         metadata_path=paths.metadata,
         out_path=paths.true_sun_position,

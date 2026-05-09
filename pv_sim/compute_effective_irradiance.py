@@ -1,7 +1,10 @@
+import logging
 from pathlib import Path
 
 import pandas as pd
 import pvlib
+
+log = logging.getLogger(__name__)
 
 
 def compute_effective_irradiance(
@@ -66,3 +69,4 @@ def compute_effective_irradiance(
 
     out_path.parent.mkdir(parents=True, exist_ok=True)
     df.to_csv(out_path, index=False)
+    log.info("Gespeichert: %s | Zeilen: %d | effective_NaN: %d", out_path, len(df), df["effective_irradiance"].isna().sum())

@@ -1,7 +1,10 @@
+import logging
 from pathlib import Path
 
 import matplotlib.pyplot as plt
 import pandas as pd
+
+log = logging.getLogger(__name__)
 
 
 def _daily_summary(df: pd.DataFrame) -> pd.DataFrame:
@@ -63,3 +66,4 @@ def plot_energy_overview(
         plt.show()
 
     plt.close(fig)
+    log.info("Plot gespeichert: %s", plot_path)

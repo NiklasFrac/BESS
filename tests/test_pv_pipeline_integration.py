@@ -14,7 +14,6 @@ from pv_sim import (
 
 def test_recomputes_mini_pipeline_from_inputs_to_energy_curve(pv_test_repo, patch_repo_root):
     for module in [
-        true_pos,
         seen_pos,
         compute_dni,
         compute_poa,
@@ -65,7 +64,14 @@ def test_recomputes_mini_pipeline_from_inputs_to_energy_curve(pv_test_repo, patc
         ],
     )
 
-    true_pos.main()
+    true_pos.compute_true_sun_position(
+        metadata_path=pv_test_repo.path("data/metadata_stations.csv"),
+        out_path=pv_test_repo.path("data/true_sun.csv"),
+        station_name=pv_test_repo.config["station"]["name"],
+        start_utc=pv_test_repo.config["time"]["start_utc"],
+        end_utc=pv_test_repo.config["time"]["end_utc"],
+        freq=pv_test_repo.config["time"]["freq"],
+    )
     seen_pos.main()
     compute_dni.main()
     compute_poa.main()

@@ -1,9 +1,12 @@
+import logging
 from pathlib import Path
 
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+
+log = logging.getLogger(__name__)
 
 mpl.rcParams["axes3d.mouserotationstyle"] = "azel"
 
@@ -76,3 +79,4 @@ def plot_horizon_profile(
         plt.show()
 
     plt.close(fig)
+    log.info("Plot gespeichert: %s", plot_path)

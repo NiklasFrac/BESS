@@ -24,8 +24,7 @@ def test_load_station_row_accepts_station_id(tmp_path):
     assert float(row["latitude"]) == pytest.approx(48.4253)
 
 
-def test_main_writes_interval_midpoint_and_end_times(pv_test_repo, patch_repo_root, monkeypatch):
-    patch_repo_root(true_pos)
+def test_compute_writes_interval_midpoint_and_end_times(pv_test_repo, monkeypatch):
     pv_test_repo.write_csv(
         "data/metadata_stations.csv",
         [
@@ -54,7 +53,14 @@ def test_main_writes_interval_midpoint_and_end_times(pv_test_repo, patch_repo_ro
 
     monkeypatch.setattr(true_pos.pvlib.solarposition, "get_solarposition", fake_get_solarposition)
 
-    true_pos.main()
+    true_pos.compute_true_sun_position(
+        metadata_path=pv_test_repo.path("data/metadata_stations.csv"),
+        out_path=pv_test_repo.path("data/true_sun.csv"),
+        station_name=pv_test_repo.config["station"]["name"],
+        start_utc=pv_test_repo.config["time"]["start_utc"],
+        end_utc=pv_test_repo.config["time"]["end_utc"],
+        freq=pv_test_repo.config["time"]["freq"],
+    )
 
     output = pd.read_csv(
         pv_test_repo.path("data/true_sun.csv"),
@@ -87,8 +93,7 @@ def test_main_writes_interval_midpoint_and_end_times(pv_test_repo, patch_repo_ro
     assert output["solar_azimuth_deg"].tolist() == [120.0, 130.0, 140.0]
 
 
-def test_main_rejects_non_positive_frequency(pv_test_repo, patch_repo_root):
-    patch_repo_root(true_pos)
+def test_compute_rejects_non_positive_frequency(pv_test_repo):
     pv_test_repo.config["time"]["freq"] = "0min"
     pv_test_repo.write_config()
     pv_test_repo.write_csv(
@@ -105,4 +110,11 @@ def test_main_rejects_non_positive_frequency(pv_test_repo, patch_repo_root):
     )
 
     with pytest.raises(ValueError, match="Invalid freq"):
-        true_pos.main()
+        true_pos.compute_true_sun_position(
+            metadata_path=pv_test_repo.path("data/metadata_stations.csv"),
+            out_path=pv_test_repo.path("data/true_sun.csv"),
+            station_name=pv_test_repo.config["station"]["name"],
+            start_utc=pv_test_repo.config["time"]["start_utc"],
+            end_utc=pv_test_repo.config["time"]["end_utc"],
+            freq=pv_test_repo.config["time"]["freq"],
+        )

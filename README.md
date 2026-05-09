@@ -103,7 +103,9 @@ Modulausrichtung, Modulanzahl, Wechselrichterdaten und Verlustannahmen.
    E_net_ac_kwh = P_ac_w / 1000 * Delta t_h
    ```
 
-   Output: `data/pv/actual/energy_curve.csv`.
+   Output: `data/pv/actual/debug/energy_curve.csv` als detaillierte
+   Energiekurve und `data/pv/actual/pv_output.csv` als kompakter Input für
+   Optimizer und Batterie.
 
 7. `visualization/energy_prod_visual.py` aggregiert die Energiekurve auf
    Tageswerte und plottet zusätzlich einen 14-Tage-Mittelwert.
@@ -111,8 +113,8 @@ Modulausrichtung, Modulanzahl, Wechselrichterdaten und Verlustannahmen.
 
 ### Finaler Output
 
-Die wichtigste Ergebnisdatei ist `data/pv/actual/energy_curve.csv`. Sie enthält
-pro 10-Minuten-Zeitpunkt unter anderem:
+Die detaillierte Ergebnisdatei ist `data/pv/actual/debug/energy_curve.csv`. Sie
+enthält pro 10-Minuten-Zeitpunkt unter anderem:
 
 - `poa_global`: Einstrahlung auf Modulebene
 - `effective_irradiance`: für das Modul wirksame Einstrahlung
@@ -121,4 +123,189 @@ pro 10-Minuten-Zeitpunkt unter anderem:
 - `p_ac_w`: AC-Leistung nach Wechselrichter
 - `e_net_ac_kwh`: erzeugte AC-Energie im Intervall
 
+Für die weiteren EMS-Schritte wird daraus zusätzlich
+`data/pv/actual/pv_output.csv` geschrieben. Diese Datei enthält `pv_kw` und die
+Umgebungstemperatur `ambient_temp_degC` auf dem PV-Zeitstempelraster.
+
 ![Energy Plot](data/visualisation/energy_plot.png)
+
+## 3. Batterie-Simulation (`battery_sim/`)
+
+Die Batterie-Simulation beschreibt, wie ein geplanter Speicherfahrplan
+physikalisch umgesetzt wird. Der Fahrplan besteht aus einer Leistung
+`action_kw`: positive Werte stehen für Laden, negative Werte für Entladen. Die
+Simulation prüft dann je Zeitschritt, welche Leistung wegen SoC-Grenzen,
+Leistungsgrenzen und Temperatur tatsächlich möglich ist. Dadurch bleibt die
+Optimierung einfach, aber die Batterieausführung enthält die wichtigeren
+realistischen Effekte.
+
+### Ablauf
+
+1. `simulator.py` bereitet den Aktionsplan vor. Erwartet werden
+   `timestamp_utc`, `action_kw` und `ambient_temp_degC`. Die Zeitstempel werden
+   nach UTC sortiert, Leistung und Temperatur werden als numerische Werte
+   validiert.
+
+2. `battery_core.py` führt den eigentlichen Speicherzeitschritt aus. Der SoC
+   bleibt immer zwischen `soc_min` und `soc_max`, und die angefragte Lade- oder
+   Entladeleistung wird zuerst durch die Nennleistung begrenzt:
+
+   ```text
+   P_charge <= charge.max_kw
+   P_discharge <= discharge.max_kw
+   E_min <= SoC <= E_max
+   ```
+
+   Zusätzlich gibt es eine temperaturabhängige Leistungsbegrenzung. Zwischen
+   harter Minimaltemperatur und optimalem Temperaturfenster steigt die erlaubte
+   Leistung linear an, im optimalen Fenster ist sie vollständig verfügbar und
+   oberhalb des optimalen Fensters fällt sie wieder linear bis zur harten
+   Maximaltemperatur ab. Außerhalb der harten Grenzen ist Laden oder Entladen
+   nicht erlaubt.
+
+3. Die Wirkungsgrade sind ebenfalls temperaturabhängig. Im optimalen
+   Temperaturfenster wird `eta_nominal` verwendet. Bei kalten oder heißen
+   Bedingungen erhöhen `loss_factor_cold` und `loss_factor_hot` die Verluste.
+   Für den SoC gilt damit vereinfacht:
+
+   ```text
+   SoC_next = SoC
+            + E_charge_ac * eta_charge(T_bat)
+            - E_discharge_ac / eta_discharge(T_bat)
+
+   loss_kwh = Energieverlust aus Lade- oder Entladevorgang
+   ```
+
+   Das Ergebnis ist `actual_kw`. Dieser Wert kann kleiner sein als die geplante
+   Aktion, wenn Leistung, Temperatur oder SoC limitieren.
+
+4. `temp.py` modelliert die Batterietemperatur als ein konzentriertes
+   thermisches System erster Ordnung. Die Umgebungstemperatur kommt aus der
+   Wetter-/PV-Zeitreihe, die Wärmequelle sind die elektrischen Verluste aus dem
+   Batteriemodell:
+
+   ```text
+   Q_bat = loss_kwh * heat_to_battery_fraction
+   R_th = thermal_time_constant_h / heat_capacity_kwh_per_degC
+   T_eq = T_ambient + R_th * Q_bat / Delta t
+   T_next = T_eq + (T_bat - T_eq) * exp(-Delta t / thermal_time_constant_h)
+   ```
+
+   Damit reagiert die Batterie nicht sprunghaft auf Außentemperatur und
+   Verlustwärme, sondern nähert sich mit einer thermischen Trägheit an das
+   jeweilige Gleichgewicht an.
+
+5. `degradation.py` aktualisiert die Alterung periodisch. Die Simulation sammelt
+   SoC, Temperatur und Leistung innerhalb eines Monats und schließt den
+   Degradationsschritt am Monatswechsel. Anschließend wird die verfügbare
+   Kapazität reduziert und der SoC wieder auf die neuen Grenzen geklemmt.
+
+### Degradation
+
+Die Degradation besteht aus Kalender- und Zyklenalterung. Für Zyklen wird aus
+der SoC-Zeitreihe mit Rainflow-Zählung die Zyklenbelastung bestimmt. Tiefe
+Zyklen werden über den DoD-Exponenten stärker gewichtet, hohe Temperaturen
+erhöhen den Stress über einen Arrhenius-Faktor und hohe C-Raten können die
+Zyklenalterung zusätzlich verstärken.
+
+Die Kalenderalterung hängt von verstrichener Zeit, Batterietemperatur und SoC
+ab. Sehr niedrige und sehr hohe SoC-Bereiche werden über eigene Stressfaktoren
+bestraft, der mittlere Bereich bleibt der Referenzfall. Der Kapazitätsfaktor
+wird danach aus beiden Alterungsanteilen gebildet:
+
+```text
+capacity_factor = (1 - cycle_fade) * (1 - calendar_fade)
+capacity_kwh = nominal_capacity_kwh * capacity_factor
+```
+
+### Finaler Output
+
+Die Batterie schreibt drei Ergebnisdateien:
+
+- `data/battery/battery_sim.csv`: geplante und tatsächlich gefahrene Aktion,
+  Lade-/Entladeenergie, Verluste, SoC und verfügbare Kapazität.
+- `data/battery/battery_temperature.csv`: Batterietemperatur je Zeitschritt.
+- `data/battery/battery_degradation.csv`: monatliche Alterungskennzahlen,
+  kumulierte EFC, Kalenderalterung, Zyklenalterung und Kapazitätsfaktor.
+
+## 4. Optimizer (`optimizer/`)
+
+Der Optimizer plant den Batteriebetrieb auf Basis von PV-Prognose, Lastprofil,
+Tarifparametern und aktuellem Batteriezustand. In `proof_of_concept.py` wird er
+rollierend pro Tag aufgerufen: End-SoC, tatsächlicher Jahrespeak und reduzierte
+Batteriekapazität werden in den nächsten Optimierungslauf übernommen.
+
+`optimizer.py` formuliert das Problem in Pyomo und löst es mit HiGHS. Die
+wichtigsten Entscheidungsvariablen sind Netzbezug, Ladeleistung,
+Entladeleistung, PV-Abregelung, Batterieenergie und der neue Jahrespeak.
+Zentrale Nebenbedingungen sind die Leistungsbilanz, die Batteriedynamik, SoC-
+und Leistungsgrenzen, PV-Abregelung und Peak-Fortschreibung:
+
+```text
+PV_t + Grid_t + Discharge_t = Load_t + Charge_t + Curtailment_t
+
+E_bat[t+1] = E_bat[t]
+           + eta_charge * Charge_t * Delta t
+           - Discharge_t * Delta t / eta_discharge
+
+P_peak_new >= Grid_t
+P_peak_new >= P_peak_before
+```
+
+Die Zielfunktion minimiert Energiebezugskosten, zusätzliche Leistungskosten und
+einen Durchsatzkosten-Term für Batteriealterung. Der End-SoC erhält einen
+Restwert, damit der Optimizer die Batterie am Horizontende nicht künstlich leer
+fährt:
+
+```text
+min  energy_price * Delta t * sum_t Grid_t
+   + demand_charge * (P_peak_new - P_peak_before)
+   + throughput_cost * Delta t
+       * sum_t (eta_charge * Charge_t + Discharge_t / eta_discharge)
+   - terminal_value * E_bat[T]
+
+throughput_cost = battery_replacement_cost
+                  / (2 * usable_capacity_kwh * expected_efc)
+
+terminal_value = eta_discharge * energy_price
+```
+
+Das Modell ist importseitig formuliert: Netzbezug ist nicht negativ, PV-Überschuss
+kann bei Bedarf abgeregelt werden. Die Optimierung verwendet nominale
+Wirkungsgrade und die aktuell verfügbare Kapazität; Temperaturdetails und
+Degradation werden anschließend in der Batterie-Simulation realisiert.
+
+Die vollständige mathematische Formulierung liegt als PDF unter
+[`optimizer/Final_Problem_Formulation.pdf`](optimizer/Final_Problem_Formulation.pdf).
+Der geplante Dispatch wird nach `data/optimizer/optimizer_dispatch.csv`
+geschrieben.
+
+## 5. Results (`data/results/`)
+
+Nach Optimizer und Batterie-Simulation werden zwei Dispatch-Dateien erzeugt.
+`data/results/baseline_dispatch.csv` beschreibt den Netzbezug des Lastprofils
+ohne EMS. `data/results/system_dispatch.csv` kombiniert Last, PV-Erzeugung und
+tatsächlich simulierte Batterieaktion und berechnet daraus Netzbezug,
+Energiekosten und Leistungspreisanteile.
+
+Die folgenden Plots werden aus diesen beiden Dateien erzeugt.
+
+![Annual cost comparison](data/results/plots/costs.png)
+
+Der Kostenplot vergleicht Baseline und System als gestapelte Balken aus
+Energie- und Leistungskosten. Man erkennt, dass das EMS die Gesamtkosten klar
+senkt; vor allem der Energiebezug wird stark reduziert, während der
+Leistungspreisanteil weiterhin sichtbar bleibt.
+
+![Grid import duration curve](data/results/plots/duration_curve.png)
+
+Die Dauerlinie sortiert alle Netzbezugsintervalle absteigend. Sie zeigt, dass
+PV und Batterie viele Intervalle auf sehr niedrigen oder keinen Netzbezug
+bringen. Im oberen Bereich ist außerdem zu erkennen, dass Lastspitzen geglättet
+werden.
+
+![KPI table](data/results/plots/kpi_table.png)
+
+Die KPI-Tabelle fasst Baseline, System und Differenz in einer Ansicht zusammen.
+Sie macht sichtbar, wie sich Netzbezug, Kosten, Peak und Autarkie gemeinsam
+verändern und dient als kompakter Überblick über den Gesamteffekt des EMS.

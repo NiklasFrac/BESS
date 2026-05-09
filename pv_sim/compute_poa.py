@@ -1,8 +1,11 @@
+import logging
 from pathlib import Path
 
 import numpy as np
 import pandas as pd
 import pvlib
+
+log = logging.getLogger(__name__)
 
 
 def compute_poa(
@@ -82,3 +85,4 @@ def compute_poa(
 
     out_path.parent.mkdir(parents=True, exist_ok=True)
     poa.to_csv(out_path, index=False)
+    log.info("Gespeichert: %s | Zeilen: %d | shaded: %d", out_path, len(poa), shaded.sum())

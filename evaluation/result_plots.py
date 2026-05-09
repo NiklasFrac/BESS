@@ -49,7 +49,6 @@ def make_eval_plots(
     system_csv: str | Path,
     plot1_costs_path: str | Path,
     plot2_duration_path: str | Path,
-    plot3_monthly_path: str | Path,
     kpi_table_path: str | Path,
 ) -> None:
     b, s = _read(baseline_csv), _read(system_csv)
@@ -75,28 +74,6 @@ def make_eval_plots(
     ax.set_title("Grid import duration curve")
     ax.legend()
     _save(fig, plot2_duration_path)
-
-    monthly = []
-    for name, df in zip(names, dfs):
-        m = df.assign(month=df["timestamp_utc"].dt.to_period("M").astype(str))
-        m = m.groupby("month")[["energy_cost_eur", "demand_increment_cost_eur"]].sum()
-        m["case"] = name
-        monthly.append(m.reset_index())
-    m = pd.concat(monthly)
-    months = sorted(m["month"].unique())
-    x, w = np.arange(len(months)), 0.35
-
-    fig, ax = plt.subplots(figsize=(10, 4))
-    for dx, name in [(-w / 2, "Baseline"), (w / 2, "System")]:
-        z = m[m["case"] == name].set_index("month").reindex(months).fillna(0)
-        ax.bar(x + dx, z["energy_cost_eur"], w, label=f"{name} energy")
-        ax.bar(x + dx, z["demand_increment_cost_eur"], w, bottom=z["energy_cost_eur"], label=f"{name} demand")
-    ax.set_xticks(x)
-    ax.set_xticklabels(months, rotation=45, ha="right")
-    ax.set_ylabel("EUR/month")
-    ax.set_title("Monthly cost comparison")
-    ax.legend(ncol=2)
-    _save(fig, plot3_monthly_path)
 
     k = pd.DataFrame({"Baseline": _kpis(b), "System": _kpis(s)})
     k["Delta"] = k["System"] - k["Baseline"]

@@ -1,3 +1,4 @@
+import logging
 from dataclasses import replace
 from pathlib import Path
 
@@ -15,6 +16,8 @@ from evaluation.result_plots import make_eval_plots
 def main() -> None:
     repo_root = Path(__file__).resolve().parent
     cfg = yaml.safe_load((repo_root / "configs" / "config.yaml").read_text())
+    logging.basicConfig(**cfg["logging"], force=True)
+    log = logging.getLogger(__name__)
 
     path_cfg = cfg["paths"]
     paths = PvSimPaths(
@@ -71,8 +74,10 @@ def main() -> None:
         p_peak_year_before_kw=cfg["optimizer"]["p_peak_year_before_kw"],
     )
 
+    log.info("Starte Downloads")
     run_downloads()
-    run_pv_sim(paths, params)
+    log.info("Starte PV-Simulation")
+    run_pv_sim(paths, params, logging_config=cfg["logging"])
     source_min = int(pd.Timedelta(cfg["time"]["freq"]).total_seconds() / 60)
     target_min = cfg["time"]["interval_minutes"]
 
@@ -111,8 +116,12 @@ def main() -> None:
     battery_results, temperature_results, degradation_results = [], [], []
     optimizer_dispatch_results = []
     day_groups = list(forecast_df.groupby(forecast_df["timestamp_utc"].dt.date))
+    log.info("Starte Optimizer/Batterie-Simulation: %d Tage", len(day_groups))
 
     for i, (day, day_df) in enumerate(day_groups):
+        if i % 30 == 0 or i == len(day_groups) - 1:
+            log.info("Fortschritt Optimizer/Batterie: %d/%d Tage", i + 1, len(day_groups))
+
         result = optimize_energy_system(
             system_params=replace(system_params, e_nom_kwh=battery_state.capacity_kwh),
             economic_params=economic_params,
@@ -155,6 +164,7 @@ def main() -> None:
     battery_path.parent.mkdir(parents=True, exist_ok=True)
     optimizer_path = repo_root / cfg["paths"]["optimizer_dispatch"]
     optimizer_path.parent.mkdir(parents=True, exist_ok=True)
+    log.info("Schreibe Ergebnisse")
 
     pd.concat(optimizer_dispatch_results).to_csv(optimizer_path, index=False, float_format="%.3f")
     pd.concat(battery_results).to_csv(battery_path, index=False, float_format="%.3f")
@@ -165,14 +175,15 @@ def main() -> None:
     write_load_grid_costs(repo_root / path_cfg["single"], repo_root / path_cfg["ems_baseline_dispatch"], **cost_args)
     write_system_grid_costs(repo_root / path_cfg["single"], paths.pv_output, battery_path, repo_root / path_cfg["ems_system_dispatch"], **cost_args)
 
+    log.info("Erzeuge Auswertungen")
     make_eval_plots(
         repo_root / path_cfg["ems_baseline_dispatch"],
         repo_root / path_cfg["ems_system_dispatch"],
         repo_root / path_cfg["costs_plot"],
         repo_root / path_cfg["duration_plot"],
-        repo_root / path_cfg["monthly_plot"],
         repo_root / path_cfg["kpi_table_plot"],
     )
+    log.info("Fertig")
 
 if __name__ == "__main__":
     main()

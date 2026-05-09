@@ -16,15 +16,6 @@ REQUIRED_COLUMNS = {
 log = logging.getLogger(__name__)
 
 
-def _find_repo_root(start: Path) -> Path:
-    for candidate in (start, *start.parents):
-        if (candidate / "data").is_dir():
-            return candidate
-    raise FileNotFoundError(
-        "Repo-Root nicht gefunden. Erwartet ein Verzeichnis mit 'data'-Ordner."
-    )
-
-
 def _load_station_row(metadata_path: Path, station_name: str) -> pd.Series:
     df = pd.read_csv(metadata_path, dtype={"station_id": str})
 

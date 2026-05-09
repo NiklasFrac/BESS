@@ -1,7 +1,10 @@
+import logging
 from pathlib import Path
 
 import pandas as pd
 import pvlib
+
+log = logging.getLogger(__name__)
 
 
 def compute_energy(
@@ -103,3 +106,4 @@ def compute_energy(
         index=False,
         float_format="%.3f",
     )
+    log.info("Gespeichert: %s, %s | Zeilen: %d | AC_kWh: %.1f", out_path, pv_output_path, len(df), df["e_net_ac_kwh"].sum())

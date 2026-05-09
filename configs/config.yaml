@@ -125,7 +125,6 @@ paths:
   ems_system_dispatch: "data/results/system_dispatch.csv"
   costs_plot: "data/results/plots/costs.png"
   duration_plot: "data/results/plots/duration_curve.png"
-  monthly_plot: "data/results/plots/monthly.png"
   kpi_table_plot: "data/results/plots/kpi_table.png"
 
 
