@@ -78,6 +78,7 @@ def make_eval_plots(
     k = pd.DataFrame({"Baseline": _kpis(b), "System": _kpis(s)})
     k["Delta"] = k["System"] - k["Baseline"]
     k["Delta [%]"] = 100 * k["Delta"] / k["Baseline"].replace(0, np.nan)
+    k.loc["Autarky [%]", "Delta [%]"] = np.nan
 
     fig, ax = plt.subplots(figsize=(8, 3.2))
     ax.axis("off")
