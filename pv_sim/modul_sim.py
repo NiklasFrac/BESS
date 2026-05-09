@@ -9,6 +9,7 @@ def compute_energy(
     poa_path: Path,
     effective_irradiance_path: Path,
     out_path: Path,
+    pv_output_path: Path,
     module_pdc0: float,
     module_count: int,
     gamma_pdc: float,
@@ -92,3 +93,13 @@ def compute_energy(
 
     out_path.parent.mkdir(parents=True, exist_ok=True)
     df.to_csv(out_path, index=False, na_rep="NaN")
+
+    pv_output_path.parent.mkdir(parents=True, exist_ok=True)
+    df.assign(
+        pv_kw=df["p_ac_w"] / 1000.0,
+        ambient_temp_degC=df["TT_10"],
+    )[["timestamp_utc", "pv_kw", "ambient_temp_degC"]].to_csv(
+        pv_output_path,
+        index=False,
+        float_format="%.3f",
+    )

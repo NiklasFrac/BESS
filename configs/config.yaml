@@ -86,13 +86,16 @@ paths:
   meteo: "data/pv/actual/dwd_meteo.csv"
   solar: "data/pv/actual/dwd_solar_data.csv"
 
-  true_sun_position: "data/pv/actual/true_sp_10min.csv"
-  apparent: "data/pv/actual/apparent_sp.csv"
-  dni: "data/pv/actual/dni.csv"
-  poa: "data/pv/actual/poa.csv"
-  effective_irradiance: "data/pv/actual/effective_irradiance.csv"
-  energy: "data/pv/actual/energy_curve.csv"
-
+  # ---------------------------------------------------------------------------
+  # PV
+  # ---------------------------------------------------------------------------
+  true_sun_position: "data/pv/actual/debug/true_sp_10min.csv"
+  apparent: "data/pv/actual/debug/apparent_sp.csv"
+  dni: "data/pv/actual/debug/dni.csv"
+  poa: "data/pv/actual/debug/poa.csv"
+  effective_irradiance: "data/pv/actual/debug/effective_irradiance.csv"
+  energy: "data/pv/actual/debug/energy_curve.csv"
+  pv_output: "data/pv/actual/pv_output.csv"
   energy_plot: "data/visualisation/energy_plot.png"
   horizon_plot: "data/visualisation/horizon_plot.png"
 
@@ -101,17 +104,29 @@ paths:
   # Firm Data
   # ---------------------------------------------------------------------------
   raw: "data/firm/LoadProfile_30IPs_2017.csv"
-  costs: "data/firm/annual_energy_costs_2017.csv"
-  test: "data/firm/LoadProfile_20IPs_2016.csv"
-  raw_utc: "data/firm/raw.csv"
-  test_utc: "data/firm/test.csv"
+  single: "data/firm/LoadProfile_LG01_2017.csv"
   
   # ---------------------------------------------------------------------------
   # Battery
   # ---------------------------------------------------------------------------
-  bat_sim: "data/battery/battery_sim.parquet"
-  bat_temp: "data/battery/battery_temperature.parquet"
+  bat_sim: "data/battery/battery_sim.csv"
+  bat_temp: "data/battery/battery_temperature.csv"
   bat_degradation: "data/battery/battery_degradation.csv"
+
+  # ---------------------------------------------------------------------------
+  # Optimizer
+  # ---------------------------------------------------------------------------
+  optimizer_dispatch: "data/optimizer/optimizer_dispatch.csv"
+
+  # ---------------------------------------------------------------------------
+  # Results
+  # ---------------------------------------------------------------------------
+  ems_baseline_dispatch: "data/results/baseline_dispatch.csv"
+  ems_system_dispatch: "data/results/system_dispatch.csv"
+  costs_plot: "data/results/plots/costs.png"
+  duration_plot: "data/results/plots/duration_curve.png"
+  monthly_plot: "data/results/plots/monthly.png"
+  kpi_table_plot: "data/results/plots/kpi_table.png"
 
 
 # =============================================================================

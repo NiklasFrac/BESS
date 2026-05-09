@@ -23,6 +23,7 @@ class PvSimPaths:
     poa: Path
     effective_irradiance: Path
     energy: Path
+    pv_output: Path
     energy_plot: Path
     horizon_plot: Path
 
@@ -95,6 +96,7 @@ def run_pv_sim(paths: PvSimPaths, params: PvSimParams) -> None:
         poa_path=paths.poa,
         effective_irradiance_path=paths.effective_irradiance,
         out_path=paths.energy,
+        pv_output_path=paths.pv_output,
         module_pdc0=params.module_pdc0,
         module_count=params.module_count,
         gamma_pdc=params.gamma_pdc,
