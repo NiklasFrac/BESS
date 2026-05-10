@@ -16,12 +16,18 @@ def _find_repo_root(start: Path) -> Path:
 
 
 def _decode_text(content: bytes) -> str:
-    for encoding in ("utf-8-sig", "latin-1", "cp1252"):
+    for encoding in ("utf-8-sig", "cp1252", "latin-1"):
         try:
             return content.decode(encoding)
         except UnicodeDecodeError:
             continue
-    raise UnicodeDecodeError("unknown", content, 0, 1, "Konnte Stations-Metadaten nicht dekodieren.")
+    raise UnicodeDecodeError(
+        "unknown",
+        content,
+        0,
+        1,
+        "Konnte Stations-Metadaten nicht dekodieren.",
+    )
 
 
 def _parse_station_table(text: str) -> pd.DataFrame:
@@ -42,18 +48,20 @@ def _parse_station_table(text: str) -> pd.DataFrame:
             ):
                 in_table = True
             continue
-        if set(line) == {"-"}:
+        if set("".join(line.split())) == {"-"}:
             continue
         parts = line.split()
         if len(parts) < 8:
             continue
-        rows.append({
-            "station_id":    parts[0],
-            "station_name":  " ".join(parts[6:-1]),
-            "latitude":      parts[4],
-            "longitude":     parts[5],
-            "height_m_amsl": parts[3],
-        })
+        rows.append(
+            {
+                "station_id": parts[0],
+                "station_name": " ".join(parts[6:-1]),
+                "latitude": parts[4],
+                "longitude": parts[5],
+                "height_m_amsl": parts[3],
+            }
+        )
 
     if not rows:
         raise ValueError("Keine Stationszeilen in der DWD-Datei gefunden.")
@@ -63,7 +71,7 @@ def _parse_station_table(text: str) -> pd.DataFrame:
 def download_station_metadata(cfg: dict, repo_root: Path) -> None:
     log = logging.getLogger(__name__)
 
-    url         = cfg["url"]["metadata"]
+    url = cfg["url"]["metadata"]
     output_path = repo_root / cfg["paths"]["metadata"]
 
     log.info("Lade Stationsmetadaten von %s", url)
@@ -73,14 +81,19 @@ def download_station_metadata(cfg: dict, repo_root: Path) -> None:
     text = _decode_text(response.content)
     df = _parse_station_table(text)
 
-    df["station_id"]    = pd.to_numeric(df["station_id"],    errors="coerce")
-    df["latitude"]      = pd.to_numeric(df["latitude"],      errors="coerce")
-    df["longitude"]     = pd.to_numeric(df["longitude"],     errors="coerce")
+    df["station_id"] = pd.to_numeric(df["station_id"], errors="coerce")
+    df["latitude"] = pd.to_numeric(df["latitude"], errors="coerce")
+    df["longitude"] = pd.to_numeric(df["longitude"], errors="coerce")
     df["height_m_amsl"] = pd.to_numeric(df["height_m_amsl"], errors="coerce")
 
-    df = df.dropna(subset=["station_id", "station_name", "latitude", "longitude", "height_m_amsl"]).copy()
+    df = df.dropna(
+        subset=["station_id", "station_name", "latitude", "longitude", "height_m_amsl"]
+    ).copy()
 
-    df["station_id"]   = df["station_id"].astype(int).astype(str).str.zfill(5)
+    if df.empty:
+        raise ValueError("Keine validen Stationszeilen in der DWD-Datei gefunden.")
+
+    df["station_id"] = df["station_id"].astype(int).astype(str).str.zfill(5)
     df["station_name"] = df["station_name"].str.strip()
 
     df = (
@@ -100,7 +113,11 @@ def main() -> None:
     cfg = yaml.safe_load((repo_root / "configs" / "config.yaml").read_text())
 
     log_cfg = cfg["logging"]
-    logging.basicConfig(level=log_cfg["level"], format=log_cfg["format"], datefmt=log_cfg["datefmt"])
+    logging.basicConfig(
+        level=log_cfg["level"],
+        format=log_cfg["format"],
+        datefmt=log_cfg["datefmt"],
+    )
 
     logging.getLogger(__name__).info("Starte Metadaten-Download")
     download_station_metadata(cfg, repo_root)

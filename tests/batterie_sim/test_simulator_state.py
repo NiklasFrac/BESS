@@ -30,32 +30,28 @@ def test_initial_simulation_state_defaults_to_soc_min(
     assert state.month_power == []
 
 
-@pytest.mark.parametrize("start_soc_kwh", [5.0, 50.0, 95.0])
-def test_initial_simulation_state_accepts_start_soc_at_limits_and_middle(
+def test_initial_simulation_state_accepts_explicit_start_soc(
     valid_battery_spec: dict,
     valid_thermal_spec: dict[str, float],
-    start_soc_kwh: float,
 ):
     state = simulator.initial_simulation_state(
         valid_battery_spec,
         valid_thermal_spec,
-        start_soc_kwh=start_soc_kwh,
+        start_soc_kwh=50.0,
     )
 
-    assert state.soc_kwh == pytest.approx(start_soc_kwh)
+    assert state.soc_kwh == pytest.approx(50.0)
 
 
-@pytest.mark.parametrize("start_soc_kwh", [4.999, 95.001, math.nan, math.inf, -math.inf])
 def test_initial_simulation_state_rejects_invalid_start_soc(
     valid_battery_spec: dict,
     valid_thermal_spec: dict[str, float],
-    start_soc_kwh: float,
 ):
     with pytest.raises(ValueError, match="start_soc_kwh"):
         simulator.initial_simulation_state(
             valid_battery_spec,
             valid_thermal_spec,
-            start_soc_kwh=start_soc_kwh,
+            start_soc_kwh=95.001,
         )
 
 

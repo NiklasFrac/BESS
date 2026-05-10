@@ -16,6 +16,7 @@ def _find_repo_root(start: Path) -> Path:
         "Repo-Root nicht gefunden. Erwartet ein Verzeichnis mit 'data'-Ordner."
     )
 
+
 def _find_data_member(zip_file: ZipFile) -> str:
     log = logging.getLogger(__name__)
     candidates = [
@@ -64,7 +65,7 @@ def _read_dwd_product(
         pd.to_datetime(
             df["MESS_DATUM"].astype(str).str.strip(),
             format="%Y%m%d%H%M",
-            errors="raise", 
+            errors="raise",
         )
         .dt.tz_localize("UTC")
     )
@@ -73,8 +74,10 @@ def _read_dwd_product(
         raise KeyError("Spalte 'STATIONS_ID' nicht gefunden.")
     ids = pd.to_numeric(df["STATIONS_ID"], errors="coerce").dropna().astype(int).unique()
     if len(ids) != 1 or ids[0] != int(station_id):
-        raise ValueError(f"Unerwartete STATIONS_ID. Erwartet: {station_id}, gefunden: {ids.tolist()}")
-
+        raise ValueError(
+            f"Unerwartete STATIONS_ID. Erwartet: {station_id}, "
+            f"gefunden: {ids.tolist()}"
+        )
 
     mask = (df["timestamp_utc"] >= start_utc) & (df["timestamp_utc"] < end_utc)
     df = df.loc[mask].copy()
@@ -82,19 +85,20 @@ def _read_dwd_product(
     log.info("Geladene Zeilen nach Zeitfilter: %d", len(df))
     return df
 
+
 def download_dwd_temp_pressure_wind(
     cfg: dict,
     repo_root: Path,
 ) -> None:
     log = logging.getLogger(__name__)
 
-    station_id   = cfg["station"]["id"]
-    start_utc    = pd.Timestamp(cfg["time"]["start_utc"], tz="UTC")
-    end_utc      = pd.Timestamp(cfg["time"]["end_utc"], tz="UTC")
-    output_file  = repo_root / cfg["paths"]["meteo"]
+    station_id = cfg["station"]["id"]
+    start_utc = pd.Timestamp(cfg["time"]["start_utc"], tz="UTC")
+    end_utc = pd.Timestamp(cfg["time"]["end_utc"], tz="UTC")
+    output_file = repo_root / cfg["paths"]["meteo"]
 
     temp = _read_dwd_product(cfg["url"]["air_temp_url"], station_id, start_utc, end_utc)
-    wind = _read_dwd_product(cfg["url"]["wind_url"],     station_id, start_utc, end_utc)
+    wind = _read_dwd_product(cfg["url"]["wind_url"], station_id, start_utc, end_utc)
 
     df = temp[["timestamp_utc", "TT_10", "PP_10"]].merge(
         wind[["timestamp_utc", "FF_10"]],
@@ -103,7 +107,11 @@ def download_dwd_temp_pressure_wind(
         validate="one_to_one",
     )
 
-    df = df[["timestamp_utc", "TT_10", "PP_10", "FF_10"]].sort_values("timestamp_utc").reset_index(drop=True)
+    df = (
+        df[["timestamp_utc", "TT_10", "PP_10", "FF_10"]]
+        .sort_values("timestamp_utc")
+        .reset_index(drop=True)
+    )
 
     output_file.parent.mkdir(parents=True, exist_ok=True)
     df.to_csv(output_file, index=False)
@@ -118,8 +126,9 @@ def main() -> None:
     logging.basicConfig(
         level=log_cfg["level"],
         format=log_cfg["format"],
-        datefmt=log_cfg["datefmt"],)
-    
+        datefmt=log_cfg["datefmt"],
+    )
+
     log = logging.getLogger(__name__)
     log.info("Starte DWD-Meteo-Download (Station %s)", cfg["station"]["id"])
 

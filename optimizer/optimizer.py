@@ -1,7 +1,9 @@
-import pyomo.environ as pyo
-import pandas as pd
+import math
 from typing import Dict, Any
 from dataclasses import dataclass
+
+import pandas as pd
+import pyomo.environ as pyo
 
 REQUIRED_FORECAST_COLUMNS = {"timestamp_utc", "pv_kw", "load_kw"}
 
@@ -30,6 +32,71 @@ class OptimizerEconomicParams:
 class OptimizerInitialStates:
     e_start_kwh: float
     p_peak_year_before_kw: float
+
+
+def _require_finite(value: float, name: str) -> None:
+    if not math.isfinite(value):
+        raise ValueError(f"{name} must be finite.")
+
+
+def _validate_scalar_params(
+    *,
+    dt_h: float,
+    e_nom_kwh: float,
+    soc_min: float,
+    soc_max: float,
+    p_grid_max_kw: float,
+    p_charge_max_kw: float,
+    p_discharge_max_kw: float,
+    eta_charge: float,
+    eta_discharge: float,
+    energy_price: float,
+    demand_charge: float,
+    battery_replacement_cost: float,
+    expected_efc: float,
+    e_start_kwh: float,
+    p_peak_before_kw: float,
+) -> None:
+    for name, value in (
+        ("dt_h", dt_h),
+        ("e_nom_kwh", e_nom_kwh),
+        ("soc_min", soc_min),
+        ("soc_max", soc_max),
+        ("p_grid_max_kw", p_grid_max_kw),
+        ("p_charge_max_kw", p_charge_max_kw),
+        ("p_discharge_max_kw", p_discharge_max_kw),
+        ("eta_charge", eta_charge),
+        ("eta_discharge", eta_discharge),
+        ("energy_price_eur_per_kwh", energy_price),
+        ("demand_charge_eur_per_kw_year", demand_charge),
+        ("battery_replacement_cost_eur", battery_replacement_cost),
+        ("expected_efc", expected_efc),
+        ("e_start_kwh", e_start_kwh),
+        ("p_peak_year_before_kw", p_peak_before_kw),
+    ):
+        _require_finite(value, name)
+
+    if dt_h <= 0:
+        raise ValueError("dt_h must be positive.")
+    if e_nom_kwh <= 0:
+        raise ValueError("e_nom_kwh must be positive.")
+    if not (0 <= soc_min < soc_max <= 1):
+        raise ValueError("Require 0 <= soc_min < soc_max <= 1.")
+    if p_grid_max_kw < 0:
+        raise ValueError("p_grid_max_kw must be non-negative.")
+    if p_charge_max_kw < 0:
+        raise ValueError("p_charge_max_kw must be non-negative.")
+    if p_discharge_max_kw < 0:
+        raise ValueError("p_discharge_max_kw must be non-negative.")
+    if not (0 < eta_charge <= 1):
+        raise ValueError("eta_charge must be in (0, 1].")
+    if not (0 < eta_discharge <= 1):
+        raise ValueError("eta_discharge must be in (0, 1].")
+    if expected_efc <= 0:
+        raise ValueError("expected_efc must be positive.")
+    if p_peak_before_kw < 0:
+        raise ValueError("p_peak_year_before_kw must be non-negative.")
+
 
 def optimize_energy_system(
     system_params: OptimizerSystemParams,
@@ -76,6 +143,23 @@ def optimize_energy_system(
     e_start_kwh = float(initial_states.e_start_kwh)
 
     p_peak_before_kw = float(initial_states.p_peak_year_before_kw)
+    _validate_scalar_params(
+        dt_h=dt_h,
+        e_nom_kwh=e_nom_kwh,
+        soc_min=soc_min,
+        soc_max=soc_max,
+        p_grid_max_kw=p_grid_max_kw,
+        p_charge_max_kw=p_charge_max_kw,
+        p_discharge_max_kw=p_discharge_max_kw,
+        eta_charge=eta_charge,
+        eta_discharge=eta_discharge,
+        energy_price=energy_price,
+        demand_charge=demand_charge,
+        battery_replacement_cost=battery_replacement_cost,
+        expected_efc=expected_efc,
+        e_start_kwh=e_start_kwh,
+        p_peak_before_kw=p_peak_before_kw,
+    )
     
     # --- derived parameters ---
     e_min_kwh = e_nom_kwh * soc_min

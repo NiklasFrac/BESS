@@ -362,3 +362,25 @@ werden.
 Die KPI-Tabelle fasst Baseline, System und Differenz in einer Ansicht zusammen.
 Sie macht sichtbar, wie sich Netzbezug, Kosten, Peak und Autarkie gemeinsam
 verändern und dient als kompakter Überblick über den Gesamteffekt des EMS.
+
+## 6. Test Scope
+
+Die Tests fokussieren aktuell die dauerhaft angelegten Kernkomponenten des
+Projekts: den Optimizer, die vollständige Batterie-Simulation (`battery_sim/`)
+und die vollständige PV-Simulation (`pv_sim/`). Diese Bereiche bilden die
+technische Basis, die auch in späteren Iterationen voraussichtlich bestehen
+bleibt.
+
+Aktueller Coverage-Stand der getesteten Kernbereiche:
+
+- `optimizer/`: 96% (`optimizer.py`: 96%)
+- `battery_sim/`: 88% (`battery_core.py`: 89%, `degradation.py`: 77%,
+  `simulator.py`: 97%, `temp.py`: 96%)
+- `pv_sim/`: 98% (`compute_dni.py`: 97%, `compute_poa.py`: 100%,
+  `compute_effective_irradiance.py`: 100%, `modul_sim.py`: 100%,
+  `runner.py`: 98%, `seen_pos.py`: 100%, `true_pos.py`: 93%,
+  Visualisierung: 97-98%)
+
+Andere Dateien wie `proof_of_concept.py` oder `optimizer/forecast_df.py` sind
+aktuell noch Übergangs- bzw. Hilfsdateien und werden später voraussichtlich
+ersetzt. Für diese Dateien gibt es deshalb bewusst noch keine eigene Testsuite.

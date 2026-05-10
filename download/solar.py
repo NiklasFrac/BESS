@@ -35,10 +35,10 @@ def _find_data_member(zip_file: ZipFile) -> str:
 def download_dwd_10min_solar(cfg: dict, repo_root: Path) -> None:
     log = logging.getLogger(__name__)
 
-    url         = cfg["url"]["solar"]
-    station_id  = cfg["station"]["id"]
-    start_utc   = pd.Timestamp(cfg["time"]["start_utc"], tz="UTC")
-    end_utc     = pd.Timestamp(cfg["time"]["end_utc"], tz="UTC")
+    url = cfg["url"]["solar"]
+    station_id = cfg["station"]["id"]
+    start_utc = pd.Timestamp(cfg["time"]["start_utc"], tz="UTC")
+    end_utc = pd.Timestamp(cfg["time"]["end_utc"], tz="UTC")
     output_path = repo_root / cfg["paths"]["solar"]
 
     log.info("Lade DWD-Solarprodukt: %s", url)
@@ -59,7 +59,10 @@ def download_dwd_10min_solar(cfg: dict, repo_root: Path) -> None:
         raise KeyError("Spalte 'STATIONS_ID' nicht gefunden.")
     ids = pd.to_numeric(df["STATIONS_ID"], errors="coerce").dropna().astype(int).unique()
     if len(ids) != 1 or ids[0] != int(station_id):
-        raise ValueError(f"Unerwartete STATIONS_ID. Erwartet: {station_id}, gefunden: {ids.tolist()}")
+        raise ValueError(
+            f"Unerwartete STATIONS_ID. Erwartet: {station_id}, "
+            f"gefunden: {ids.tolist()}"
+        )
 
     df["timestamp_utc"] = pd.to_datetime(
         df["MESS_DATUM"].astype(str).str.strip(),
@@ -71,7 +74,11 @@ def download_dwd_10min_solar(cfg: dict, repo_root: Path) -> None:
     df = df.loc[mask].copy()
     log.info("Geladene Zeilen nach Zeitfilter: %d", len(df))
 
-    df = df[["timestamp_utc", "GS_10", "DS_10"]].sort_values("timestamp_utc").reset_index(drop=True)
+    df = (
+        df[["timestamp_utc", "GS_10", "DS_10"]]
+        .sort_values("timestamp_utc")
+        .reset_index(drop=True)
+    )
 
     output_path.parent.mkdir(parents=True, exist_ok=True)
     df.to_csv(output_path, index=False)
@@ -83,9 +90,16 @@ def main() -> None:
     cfg = yaml.safe_load((repo_root / "configs" / "config.yaml").read_text())
 
     log_cfg = cfg["logging"]
-    logging.basicConfig(level=log_cfg["level"], format=log_cfg["format"], datefmt=log_cfg["datefmt"])
+    logging.basicConfig(
+        level=log_cfg["level"],
+        format=log_cfg["format"],
+        datefmt=log_cfg["datefmt"],
+    )
 
-    logging.getLogger(__name__).info("Starte DWD-Solar-Download (Station %s)", cfg["station"]["id"])
+    logging.getLogger(__name__).info(
+        "Starte DWD-Solar-Download (Station %s)",
+        cfg["station"]["id"],
+    )
     download_dwd_10min_solar(cfg, repo_root)
 
 

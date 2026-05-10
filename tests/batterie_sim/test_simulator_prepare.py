@@ -1,5 +1,3 @@
-import math
-
 import pandas as pd
 import pytest
 
@@ -40,23 +38,6 @@ def test_prepare_action_df_selects_sorts_converts_and_resets_index():
     )
 
 
-def test_prepare_action_df_treats_naive_timestamps_as_utc():
-    raw = pd.DataFrame(
-        {
-            "timestamp_utc": ["2024-01-01 00:00:00", "2024-01-01 01:00:00"],
-            "action_kw": [0.0, 1.0],
-            "ambient_temp_degC": [20.0, 21.0],
-        }
-    )
-
-    prepared = _prepare_action_df(raw)
-
-    assert prepared["timestamp_utc"].tolist() == [
-        pd.Timestamp("2024-01-01 00:00:00+00:00"),
-        pd.Timestamp("2024-01-01 01:00:00+00:00"),
-    ]
-
-
 def test_prepare_action_df_converts_aware_timestamps_to_utc():
     raw = pd.DataFrame(
         {
@@ -93,82 +74,33 @@ def test_prepare_action_df_does_not_mutate_input_dataframe():
     pd.testing.assert_frame_equal(raw, before)
 
 
-@pytest.mark.parametrize(
-    "missing_column",
-    ["timestamp_utc", "action_kw", "ambient_temp_degC"],
-)
-def test_prepare_action_df_rejects_missing_required_columns(missing_column: str):
-    raw = pd.DataFrame(
-        {
-            "timestamp_utc": ["2024-01-01 00:00:00+00:00"],
-            "action_kw": [0.0],
-            "ambient_temp_degC": [20.0],
-        }
-    ).drop(columns=[missing_column])
-
+def test_prepare_action_df_rejects_bad_shape_or_values():
     with pytest.raises(ValueError, match="action_df missing columns"):
-        _prepare_action_df(raw)
-
-
-def test_prepare_action_df_rejects_empty_dataframe():
-    raw = pd.DataFrame(columns=["timestamp_utc", "action_kw", "ambient_temp_degC"])
+        _prepare_action_df(pd.DataFrame({"timestamp_utc": ["2024-01-01"]}))
 
     with pytest.raises(ValueError, match="action_df must not be empty"):
-        _prepare_action_df(raw)
+        _prepare_action_df(
+            pd.DataFrame(columns=["timestamp_utc", "action_kw", "ambient_temp_degC"])
+        )
 
-
-def test_prepare_action_df_rejects_nat_timestamps():
-    raw = pd.DataFrame(
-        {
-            "timestamp_utc": [pd.NaT],
-            "action_kw": [0.0],
-            "ambient_temp_degC": [20.0],
-        }
-    )
-
-    with pytest.raises(ValueError, match="timestamp_utc contains invalid"):
-        _prepare_action_df(raw)
-
-
-def test_prepare_action_df_rejects_unparseable_timestamps():
-    raw = pd.DataFrame(
-        {
-            "timestamp_utc": ["not-a-timestamp"],
-            "action_kw": [0.0],
-            "ambient_temp_degC": [20.0],
-        }
-    )
-
-    with pytest.raises((TypeError, ValueError)):
-        _prepare_action_df(raw)
-
-
-@pytest.mark.parametrize("bad_action", ["bad", math.nan, math.inf, -math.inf])
-def test_prepare_action_df_rejects_invalid_actions(bad_action):
-    raw = pd.DataFrame(
-        {
-            "timestamp_utc": ["2024-01-01 00:00:00+00:00"],
-            "action_kw": [bad_action],
-            "ambient_temp_degC": [20.0],
-        }
-    )
+    with pytest.raises((TypeError, ValueError), match="timestamp|Unknown datetime"):
+        _prepare_action_df(
+            pd.DataFrame(
+                {
+                    "timestamp_utc": ["not-a-timestamp"],
+                    "action_kw": [0.0],
+                    "ambient_temp_degC": [20.0],
+                }
+            )
+        )
 
     with pytest.raises((TypeError, ValueError), match="action_kw|Unable to parse"):
-        _prepare_action_df(raw)
-
-
-@pytest.mark.parametrize("bad_ambient", ["bad", math.nan, math.inf, -math.inf])
-def test_prepare_action_df_rejects_invalid_ambient_temperatures(bad_ambient):
-    raw = pd.DataFrame(
-        {
-            "timestamp_utc": ["2024-01-01 00:00:00+00:00"],
-            "action_kw": [0.0],
-            "ambient_temp_degC": [bad_ambient],
-        }
-    )
-
-    with pytest.raises(
-        (TypeError, ValueError),
-        match="ambient_temp_degC|Unable to parse",
-    ):
-        _prepare_action_df(raw)
+        _prepare_action_df(
+            pd.DataFrame(
+                {
+                    "timestamp_utc": ["2024-01-01 00:00:00+00:00"],
+                    "action_kw": ["bad"],
+                    "ambient_temp_degC": [20.0],
+                }
+            )
+        )

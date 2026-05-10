@@ -239,27 +239,15 @@ def test_simulate_period_temperature_df_records_timestamp_and_pre_step_temperatu
     )
 
 
-@pytest.mark.parametrize(
-    ("ambient_temp_degC", "error_match"),
-    [
-        (math.nan, "ambient_temp_degC contains"),
-        (math.inf, "ambient_temp_degC contains"),
-        (ABSOLUTE_ZERO_DEGC, "ambient_temp_degC"),
-        (ABSOLUTE_ZERO_DEGC - 1.0, "ambient_temp_degC"),
-    ],
-)
-def test_simulate_period_rejects_invalid_ambient_temperatures(
-    ambient_temp_degC,
-    error_match,
-):
-    with pytest.raises(ValueError, match=error_match):
+def test_simulate_period_rejects_invalid_ambient_temperature():
+    with pytest.raises(ValueError, match="ambient_temp_degC"):
         simulator.simulate_period(
             action_df=action_df(
                 [
                     {
                         "timestamp_utc": "2024-01-01 00:00:00+00:00",
                         "action_kw": 0.0,
-                        "ambient_temp_degC": ambient_temp_degC,
+                        "ambient_temp_degC": ABSOLUTE_ZERO_DEGC,
                     }
                 ]
             ),

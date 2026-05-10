@@ -1,4 +1,5 @@
 import logging
+import math
 from pathlib import Path
 
 import pandas as pd
@@ -14,13 +15,33 @@ def _find_repo_root(start: Path) -> Path:
         "Repo-Root nicht gefunden. Erwartet ein Verzeichnis mit 'data'-Ordner."
     )
 
+
 def _load_station_coords(metadata_path: Path, station_id: str) -> tuple[float, float]:
     df = pd.read_csv(metadata_path, dtype={"station_id": str})
+
+    required_columns = {"station_id", "latitude", "longitude"}
+    missing_columns = required_columns.difference(df.columns)
+    if missing_columns:
+        missing = ", ".join(sorted(missing_columns))
+        raise KeyError(f"Metadata file {metadata_path} missing columns: {missing}")
+
     row = df[df["station_id"].str.strip() == station_id.strip()]
     if row.empty:
         raise ValueError(f"Station ID {station_id!r} not found in {metadata_path}")
-    lat = float(row["latitude"].iloc[0])
-    lon = float(row["longitude"].iloc[0])
+
+    try:
+        lat = float(row["latitude"].iloc[0])
+        lon = float(row["longitude"].iloc[0])
+    except (TypeError, ValueError) as exc:
+        raise ValueError(
+            f"Invalid coordinates for station ID {station_id!r} in {metadata_path}"
+        ) from exc
+
+    if not math.isfinite(lat) or not math.isfinite(lon):
+        raise ValueError(
+            f"Invalid coordinates for station ID {station_id!r} in {metadata_path}"
+        )
+
     return lat, lon
 
 
@@ -31,7 +52,7 @@ def download_pvgis_horizon(cfg: dict, repo_root: Path) -> pd.DataFrame:
     station_id = cfg["station"]["id"]
     station_name = cfg["station"]["name"]
     metadata_path = repo_root / cfg["paths"]["metadata"]
-    output_path =  repo_root / cfg["paths"]["pvgis"]
+    output_path = repo_root / cfg["paths"]["pvgis"]
 
     log.info("Loading coordinates for station %s (%s)", station_id, station_name)
     lat, lon = _load_station_coords(metadata_path, station_id)
@@ -57,9 +78,17 @@ def download_pvgis_horizon(cfg: dict, repo_root: Path) -> pd.DataFrame:
     return df
 
 
-if __name__ == "__main__":
+def main() -> None:
     repo_root = _find_repo_root(Path(__file__).resolve().parent)
     cfg = yaml.safe_load((repo_root / "configs" / "config.yaml").read_text())
     log_cfg = cfg["logging"]
-    logging.basicConfig(level=log_cfg["level"], format=log_cfg["format"], datefmt=log_cfg["datefmt"])
-    df = download_pvgis_horizon(cfg, repo_root)
+    logging.basicConfig(
+        level=log_cfg["level"],
+        format=log_cfg["format"],
+        datefmt=log_cfg["datefmt"],
+    )
+    download_pvgis_horizon(cfg, repo_root)
+
+
+if __name__ == "__main__":
+    main()
