@@ -1,25 +1,54 @@
 import math
 
+
+ABSOLUTE_ZERO_DEGC = -273.15
+
+
+def _require_finite(value: float, name: str) -> None:
+    if not math.isfinite(value):
+        raise ValueError(f"{name} must be finite.")
+
+
+def _require_temperature_degC(value: float, name: str) -> None:
+    if not math.isfinite(value) or value <= ABSOLUTE_ZERO_DEGC:
+        raise ValueError(f"{name} must be finite and above absolute zero.")
+
+
 def validate_spec(spec: dict) -> None:
+    _require_finite(spec["capacity_kwh"], "capacity_kwh")
     if spec["capacity_kwh"] <= 0:
         raise ValueError("capacity_kwh must be positive.")
 
+    _require_finite(spec["soc_min"], "soc_min")
+    _require_finite(spec["soc_max"], "soc_max")
     if not (0 <= spec["soc_min"] < spec["soc_max"] <= 1):
         raise ValueError("Require 0 <= soc_min < soc_max <= 1.")
 
     for mode in ("charge", "discharge"):
         cfg = spec[mode]
 
+        _require_finite(cfg["max_kw"], f"{mode}.max_kw")
         if cfg["max_kw"] < 0:
             raise ValueError(f"{mode}.max_kw must be non-negative.")
 
+        _require_finite(cfg["eta_nominal"], f"{mode}.eta_nominal")
         if not (0 < cfg["eta_nominal"] <= 1):
             raise ValueError(f"{mode}.eta_nominal must be in (0, 1].")
 
+        _require_finite(cfg["loss_factor_cold"], f"{mode}.loss_factor_cold")
         if cfg["loss_factor_cold"] < 1.0:
             raise ValueError(f"{mode}.loss_factor_cold must be >= 1.")
+        _require_finite(cfg["loss_factor_hot"], f"{mode}.loss_factor_hot")
         if cfg["loss_factor_hot"] < 1.0:
             raise ValueError(f"{mode}.loss_factor_hot must be >= 1.")
+
+        for key in (
+            "hard_min",
+            "optimal_min_temp",
+            "optimal_max_temp",
+            "hard_max",
+        ):
+            _require_temperature_degC(cfg[key], f"{mode}.{key}")
 
         if not (
             cfg["hard_min"]
@@ -38,9 +67,8 @@ def validate_spec(spec: dict) -> None:
             raise ValueError(f"{mode}.loss_factor_cold makes eta <= 0.")
         if eta_hot <= 0.0:
             raise ValueError(f"{mode}.loss_factor_hot makes eta <= 0.")
-        
 
-    
+
 def _derating_factor(T, hard_min, full_min, full_max, hard_max):
     if T <= hard_min or T >= hard_max:
         return 0.0
@@ -50,7 +78,17 @@ def _derating_factor(T, hard_min, full_min, full_max, hard_max):
         return (hard_max - T) / (hard_max - full_max)
     return 1.0
 
-def _eta_T(T, eta_nominal, hard_min, full_min, full_max, hard_max, f_max_low, f_max_high):
+
+def _eta_T(
+    T,
+    eta_nominal,
+    hard_min,
+    full_min,
+    full_max,
+    hard_max,
+    f_max_low,
+    f_max_high,
+):
     if T < full_min:
         f = f_max_low - (f_max_low - 1.0) * (T - hard_min) / (full_min - hard_min)
     elif T > full_max:
@@ -61,12 +99,12 @@ def _eta_T(T, eta_nominal, hard_min, full_min, full_max, hard_max, f_max_low, f_
 
 
 def step(
-        state: dict,
-        spec: dict, 
-        action_kw: float, 
-        dt_h: float,
-        battery_temp_degC: float,
-        ) -> dict:
+    state: dict,
+    spec: dict,
+    action_kw: float,
+    dt_h: float,
+    battery_temp_degC: float,
+) -> dict:
     soc_min_kwh = spec["capacity_kwh"] * spec["soc_min"]
     soc_max_kwh = spec["capacity_kwh"] * spec["soc_max"]
 
@@ -74,18 +112,19 @@ def step(
         raise ValueError("action_kw must be finite.")
     if not math.isfinite(dt_h) or dt_h <= 0:
         raise ValueError("dt_h must be positive and finite.")
-    if not math.isfinite(battery_temp_degC):
-        raise ValueError("battery_temp_degC must be finite.")
-    if not (soc_min_kwh <= state["soc_kwh"] <= soc_max_kwh):
-        raise ValueError("SoC outside allowed range.")
+    _require_temperature_degC(battery_temp_degC, "battery_temp_degC")
 
     soc_before = state["soc_kwh"]
+    _require_finite(soc_before, "soc_kwh")
+    if not (soc_min_kwh <= soc_before <= soc_max_kwh):
+        raise ValueError("SoC outside allowed range.")
+
     charge_ac_kwh = 0.0
     discharge_ac_kwh = 0.0
 
     charge_power_limited_ac_kwh = 0.0
     discharge_power_limited_ac_kwh = 0.0
-    
+
     loss_kwh = 0.0
 
     eta_charge_effective = None
@@ -159,10 +198,11 @@ def step(
 
             state["soc_kwh"] += delta_soc
 
-            charge_ac_kwh = delta_soc / eta_charge_effective if delta_soc > 0.0 else 0.0
+            charge_ac_kwh = (
+                delta_soc / eta_charge_effective if delta_soc > 0.0 else 0.0
+            )
             charge_soc_limited_ac_kwh = potential_charge_ac_kwh - charge_ac_kwh
             loss_kwh = charge_ac_kwh - delta_soc
-
 
     elif action_kw < 0:
         p_requested_kw = -action_kw
@@ -195,14 +235,16 @@ def step(
 
             potential_discharge_ac_kwh = p_kw * dt_h
             potential_delta_soc = potential_discharge_ac_kwh / eta_discharge_effective
-            available_soc_kwh = state["soc_kwh"] - soc_min_kwh
+            available_soc_kwh = soc_before - soc_min_kwh
 
             delta_soc = min(potential_delta_soc, available_soc_kwh)
 
             state["soc_kwh"] -= delta_soc
 
             discharge_ac_kwh = delta_soc * eta_discharge_effective
-            discharge_soc_limited_ac_kwh = potential_discharge_ac_kwh - discharge_ac_kwh
+            discharge_soc_limited_ac_kwh = (
+                potential_discharge_ac_kwh - discharge_ac_kwh
+            )
             loss_kwh = delta_soc - discharge_ac_kwh
 
     soc_after = state["soc_kwh"]
@@ -220,7 +262,6 @@ def step(
         "discharge_allowed": discharge_allowed,
         "charge_temp_limited_ac_kwh": charge_temp_limited_ac_kwh,
         "discharge_temp_limited_ac_kwh": discharge_temp_limited_ac_kwh,
-        
         "eta_charge_effective": eta_charge_effective,
         "eta_discharge_effective": eta_discharge_effective,
 
