@@ -381,6 +381,10 @@ Aktueller Coverage-Stand der getesteten Kernbereiche:
   `runner.py`: 98%, `seen_pos.py`: 100%, `true_pos.py`: 93%,
   Visualisierung: 97-98%)
 
+Die Coverage-Zahlen zeigen nur, welche Codebereiche durch Tests ausgeführt
+werden; sie sind kein direkter Nachweis für fachlich sinnvolle oder vollständige
+Tests.
+
 Andere Dateien wie `proof_of_concept.py` oder `optimizer/forecast_df.py` sind
 aktuell noch Übergangs- bzw. Hilfsdateien und werden später voraussichtlich
 ersetzt. Für diese Dateien gibt es deshalb bewusst noch keine eigene Testsuite.
