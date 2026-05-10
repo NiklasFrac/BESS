@@ -5,7 +5,7 @@
 **Key Features:**
 - PV-Simulation mit pvlib, DWD-Wetterdaten und PVGIS-Horizontprofilen
 - Physikalisches Batteriemodell inkl. Temperatur und Degradation
-- Day-Ahead MILP-Optimierung (Pyomo/HiGHS) für minimale Energiekosten
+- Day-Ahead LP-Optimierung (Pyomo/HiGHS) für minimale Energiekosten
 - Vollständige Jahressimulation mit rollierender Optimierung
 
 ---
