@@ -12,6 +12,18 @@
 
 # EMS - Projektübersicht
 
+## Disclaimer
+
+Dieses Projekt befindet sich aktuell im Proof-of-Concept-Stadium. Die derzeitige
+Version verwendet Optimal Foresight, das heißt ideale Kenntnis zukünftiger Last-
+und Erzeugungswerte, um zu demonstrieren, dass das Grundkonzept grundsätzlich
+funktioniert. Der Lastprognose-Algorithmus befindet sich noch in Entwicklung und
+bildet noch nicht die Grundlage der gezeigten Ergebnisse. Batterie- und
+PV-Parameter wurden frei zu Demonstrationszwecken gewählt. Die erzeugten
+Outputs sind daher ausschließlich als Demo-Ergebnisse zu verstehen und dürfen
+nicht als validierte reale Verbesserungen, Einsparungen oder Performance-Gewinne
+interpretiert werden.
+
 ## 0. Reproduzierbares Setup
 
 Das Projekt nutzt `pyproject.toml` für Dependency-Bereiche und `uv.lock` für
