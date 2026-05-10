@@ -1,16 +1,24 @@
 [project]
 name = "bess"
 version = "0.1.0"
+requires-python = ">=3.13,<3.14"
 dependencies = [
-    "matplotlib",
-    "numpy",
-    "pandas",
-    "pyomo",
-    "pvlib",
-    "PyYAML",
-    "pytest",
-    "rainflow",
-    "requests",
+    "highspy>=1.14,<2",
+    "matplotlib>=3.10,<4",
+    "numpy>=2.4,<3",
+    "pandas>=3.0,<4",
+    "pyomo>=6.10,<7",
+    "pvlib>=0.15,<1",
+    "PyYAML>=6.0,<7",
+    "rainflow>=3.2,<4",
+    "requests>=2.33,<3",
+]
+
+[dependency-groups]
+dev = [
+    "mypy>=2.0,<3",
+    "pytest>=9.0,<10",
+    "ruff>=0.15,<1",
 ]
 
 [build-system]
@@ -27,3 +35,11 @@ include = [
     "optimizer*",
     "pv_sim*",
 ]
+
+[tool.ruff]
+line-length = 88
+target-version = "py313"
+
+[tool.mypy]
+python_version = "3.13"
+ignore_missing_imports = true

@@ -1,4 +1,45 @@
+# EMS - Battery Energy Storage System Optimizer
+
+> Simulation und kostenoptimale Steuerung eines Batteriespeichers mit PV-Anlage auf Basis realer Wetterdaten (DWD) und Day-Ahead Optimierung.
+
+**Key Features:**
+- PV-Simulation mit pvlib, DWD-Wetterdaten und PVGIS-Horizontprofilen
+- Physikalisches Batteriemodell inkl. Temperatur und Degradation
+- Day-Ahead MILP-Optimierung (Pyomo/HiGHS) für minimale Energiekosten
+- Vollständige Jahressimulation mit rollierender Optimierung
+
+---
+
 # EMS - Projektübersicht
+
+## 0. Reproduzierbares Setup
+
+Das Projekt nutzt `pyproject.toml` für Dependency-Bereiche und `uv.lock` für
+exakt reproduzierbare Paketversionen. Ein lokales Setup wird mit uv erzeugt:
+
+```powershell
+uv sync --locked
+```
+
+Prüfen, ob `uv.lock` noch zur `pyproject.toml` passt:
+
+```powershell
+uv lock --check
+```
+
+Nach bewussten Dependency-Änderungen den Lockfile aktualisieren:
+
+```powershell
+uv lock
+```
+
+Typische Checks laufen dann über die gelockte Umgebung:
+
+```powershell
+uv run ruff check .
+uv run mypy .
+uv run pytest
+```
 
 ## 1. Downloader (`download/`)
 
