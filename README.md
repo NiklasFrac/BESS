@@ -24,35 +24,6 @@ Outputs sind daher ausschließlich als Demo-Ergebnisse zu verstehen und dürfen
 nicht als validierte reale Verbesserungen, Einsparungen oder Performance-Gewinne
 interpretiert werden.
 
-## 0. Reproduzierbares Setup
-
-Das Projekt nutzt `pyproject.toml` für Dependency-Bereiche und `uv.lock` für
-exakt reproduzierbare Paketversionen. Ein lokales Setup wird mit uv erzeugt:
-
-```powershell
-uv sync --locked
-```
-
-Prüfen, ob `uv.lock` noch zur `pyproject.toml` passt:
-
-```powershell
-uv lock --check
-```
-
-Nach bewussten Dependency-Änderungen den Lockfile aktualisieren:
-
-```powershell
-uv lock
-```
-
-Typische Checks laufen dann über die gelockte Umgebung:
-
-```powershell
-uv run ruff check .
-uv run mypy .
-uv run pytest
-```
-
 ## 1. Downloader (`download/`)
 
 Die Downloader lesen `configs/config.yaml`, laden die externen Daten für die
@@ -363,7 +334,44 @@ Die KPI-Tabelle fasst Baseline, System und Differenz in einer Ansicht zusammen.
 Sie macht sichtbar, wie sich Netzbezug, Kosten, Peak und Autarkie gemeinsam
 verändern und dient als kompakter Überblick über den Gesamteffekt des EMS.
 
-## 6. Test Scope
+## 6. Development
+
+### Reproduzierbares Setup
+
+Das Projekt nutzt `pyproject.toml` für Dependency-Bereiche und `uv.lock` für
+exakt reproduzierbare Paketversionen. Ein lokales Setup wird mit uv erzeugt:
+
+```powershell
+uv sync --locked
+```
+
+Prüfen, ob `uv.lock` noch zur `pyproject.toml` passt:
+
+```powershell
+uv lock --check
+```
+
+Nach bewussten Dependency-Änderungen den Lockfile aktualisieren:
+
+```powershell
+uv lock
+```
+
+Typische Checks laufen dann über die gelockte Umgebung:
+
+```powershell
+uv run ruff check .
+uv run mypy .
+uv run pytest
+```
+
+Demo starten:
+
+```powershell
+uv run python proof_of_concept.py
+```
+
+### Test Scope
 
 Die Tests fokussieren aktuell die dauerhaft angelegten Kernkomponenten des
 Projekts: den Optimizer, die vollständige Batterie-Simulation (`battery_sim/`)
@@ -388,3 +396,13 @@ Tests.
 Andere Dateien wie `proof_of_concept.py` oder `optimizer/forecast_df.py` sind
 aktuell noch Übergangs- bzw. Hilfsdateien und werden später voraussichtlich
 ersetzt. Für diese Dateien gibt es deshalb bewusst noch keine eigene Testsuite.
+
+### Ruff und Mypy
+
+Ruff und Mypy sind aktuell vollständig sauber:
+
+```powershell
+uv run ruff check .
+uv run ruff format --check .
+uv run mypy .
+```
