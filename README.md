@@ -2,9 +2,9 @@
 
 Ein modulares Python-System zur physikalischen Simulation und kostenoptimalen
 Steuerung eines Batteriespeichers mit PV-Anlage. Das System kombiniert reale
-DWD-Wetterdaten mit einem physikalischen Batteriemodell und einem täglichen
-LP-Optimizer (Pyomo/HiGHS) zu einer vollständigen Jahressimulation mit
-rollierender Day-Ahead-Optimierung auf 15-Minuten-Intervallen.
+DWD-Wetterdaten und Lastdaten mit einem physikalischen Batteriemodell und
+einem täglichen LP-Optimizer (Pyomo/HiGHS) zu einer vollständigen
+Jahressimulation mit rollierender Day-Ahead-Optimierung auf 15-Minuten-Intervallen.
 
 Die mathematische Problemformulierung des Optimierungsmodells ist vollständig
 formal dokumentiert: [`optimizer/problem_formulation.pdf`](optimizer/problem_formulation.pdf)
@@ -21,7 +21,15 @@ Faiman-Thermalmodell · DWD/PVGIS-Datenpipeline
 > Algorithmus ist in Entwicklung. Batterie- und PV-Parameter wurden frei gewählt;
 > die gezeigten Ergebnisse sind Demo-Outputs, keine validierten realen Einsparungen.
 
-## 1. Downloader (`download/`)
+## 1. Datenquellen
+
+| Quelle | Inhalt | Zugang |
+| --- | --- | --- |
+| DWD (`00232`) | 10-min Wetter- und Solardaten (Augsburg) | automatisiert via `download/` |
+| PVGIS | Lokales Horizontprofil | automatisiert via `download/` |
+| Zenodo ([DOI:10.5281/zenodo.3899018](https://zenodo.org/records/3899018)) | Lastprofil in 15-Minuten-Abständen | manueller Download |
+
+## 2. Downloader (`download/`)
 
 Die Downloader lesen `configs/config.yaml`, laden die externen Daten für die
 Station Augsburg Bayern (`00232`) und schreiben sie unter `data/pv/...`.
@@ -34,7 +42,7 @@ Station Augsburg Bayern (`00232`) und schreiben sie unter `data/pv/...`.
 | `download/solar.py` | Lädt DWD-10-Minuten-Solardaten: Globalstrahlung `GS_10` und diffuse Strahlung `DS_10`; Input für DNI und Einstrahlung auf die Modulebene. | `data/pv/actual/dwd_solar_data.csv` |
 | `download/horizon.py` | Lädt aus PVGIS das lokale Horizontprofil auf Basis der Stationskoordinaten; später zur Abschattung der Direktstrahlung. | `data/pv/general/pvgis_horizon_augsburg.csv` |
 
-## 2. PV-Simulation (`pv_sim/`)
+## 3. PV-Simulation (`pv_sim/`)
 
 `pv_sim/runner.py` führt die Pipeline chronologisch aus. Die wichtigsten
 Parameter kommen aus `configs/config.yaml`: Zeitraum, 10-Minuten-Frequenz,
@@ -150,7 +158,7 @@ Umgebungstemperatur `ambient_temp_degC` auf dem PV-Zeitstempelraster.
 
 ![Energy Plot](data/visualisation/energy_plot.png)
 
-## 3. Batterie-Simulation (`battery_sim/`)
+## 4. Batterie-Simulation (`battery_sim/`)
 
 Die Batterie-Simulation beschreibt, wie ein geplanter Speicherfahrplan
 physikalisch umgesetzt wird. Der Fahrplan besteht aus einer Leistung
@@ -249,7 +257,7 @@ Die Batterie schreibt drei Ergebnisdateien:
 - `data/battery/battery_degradation.csv`: monatliche Alterungskennzahlen,
   kumulierte EFC, Kalenderalterung, Zyklenalterung und Kapazitätsfaktor.
 
-## 4. Optimizer (`optimizer/`)
+## 5. Optimizer (`optimizer/`)
 
 Der Optimizer plant den Batteriebetrieb auf Basis von PV-Prognose, Lastprofil,
 Tarifparametern und aktuellem Batteriezustand. In `proof_of_concept.py` wird er
@@ -301,7 +309,7 @@ Die vollständige mathematische Formulierung liegt als PDF unter
 Der geplante Dispatch wird nach `data/optimizer/optimizer_dispatch.csv`
 geschrieben.
 
-## 5. Results (`data/results/`)
+## 6. Results (`data/results/`)
 
 Nach Optimizer und Batterie-Simulation werden zwei Dispatch-Dateien erzeugt.
 `data/results/baseline_dispatch.csv` beschreibt den Netzbezug des Lastprofils
@@ -330,7 +338,7 @@ Die KPI-Tabelle fasst Baseline, System und Differenz in einer Ansicht zusammen.
 Sie macht sichtbar, wie sich Netzbezug, Kosten, Peak und Autarkie gemeinsam
 verändern und dient als kompakter Überblick über den Gesamteffekt des EMS.
 
-## 6. Development
+## 7. Development
 
 ### Reproduzierbares Setup
 
