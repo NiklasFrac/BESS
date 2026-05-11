@@ -1,28 +1,25 @@
-# EMS - Battery Energy Storage System Optimizer
+# EMS – Battery Energy Storage System Optimizer
 
-> Simulation und kostenoptimale Steuerung eines Batteriespeichers mit PV-Anlage auf Basis realer Wetterdaten (DWD) und Day-Ahead Optimierung.
+Ein modulares Python-System zur physikalischen Simulation und kostenoptimalen
+Steuerung eines Batteriespeichers mit PV-Anlage. Das System kombiniert reale
+DWD-Wetterdaten mit einem physikalischen Batteriemodell und einem täglichen
+LP-Optimizer (Pyomo/HiGHS) zu einer vollständigen Jahressimulation mit
+rollierender Day-Ahead-Optimierung auf 15-Minuten-Intervallen.
 
-**Key Features:**
-- PV-Simulation mit pvlib, DWD-Wetterdaten und PVGIS-Horizontprofilen
-- Physikalisches Batteriemodell inkl. Temperatur und Degradation
-- Day-Ahead LP-Optimierung (Pyomo/HiGHS) für minimale Energiekosten
-- Vollständige Jahressimulation mit rollierender Optimierung
+Die mathematische Problemformulierung des Optimierungsmodells ist vollständig
+formal dokumentiert: [`optimizer/problem_formulation.pdf`](optimizer/problem_formulation.pdf)
+
+**Stack:** pvlib · Pyomo/HiGHS · Rainflow-Counting · Arrhenius-Degradation ·
+Faiman-Thermalmodell · DWD/PVGIS-Datenpipeline
+
+**Test Coverage:** optimizer 96% · battery_sim 88% · pv_sim 98% · Ruff/mypy clean
 
 ---
 
-# EMS - Projektübersicht
-
-## Disclaimer
-
-Dieses Projekt befindet sich aktuell im Proof-of-Concept-Stadium. Die derzeitige
-Version verwendet Optimal Foresight, das heißt ideale Kenntnis zukünftiger Last-
-und Erzeugungswerte, um zu demonstrieren, dass das Grundkonzept grundsätzlich
-funktioniert. Der Lastprognose-Algorithmus befindet sich noch in Entwicklung und
-bildet noch nicht die Grundlage der gezeigten Ergebnisse. Batterie- und
-PV-Parameter wurden frei zu Demonstrationszwecken gewählt. Die erzeugten
-Outputs sind daher ausschließlich als Demo-Ergebnisse zu verstehen und dürfen
-nicht als validierte reale Verbesserungen, Einsparungen oder Performance-Gewinne
-interpretiert werden.
+> **Proof of Concept:** Das System operiert aktuell mit Optimal Foresight als
+> Baseline – ideale Kenntnis zukünftiger Last- und Erzeugungswerte – um die technische Funktionsfähigkeit und Plausibilität des Gesamtsystems zu prüfen. Der Lastprognose-
+> Algorithmus ist in Entwicklung. Batterie- und PV-Parameter wurden frei gewählt;
+> die gezeigten Ergebnisse sind Demo-Outputs, keine validierten realen Einsparungen.
 
 ## 1. Downloader (`download/`)
 
@@ -300,7 +297,7 @@ Wirkungsgrade und die aktuell verfügbare Kapazität; Temperaturdetails und
 Degradation werden anschließend in der Batterie-Simulation realisiert.
 
 Die vollständige mathematische Formulierung liegt als PDF unter
-[`optimizer/Final_Problem_Formulation.pdf`](optimizer/Final_Problem_Formulation.pdf).
+[`optimizer/problem_formulation.pdf`](optimizer/problem_formulation.pdf).
 Der geplante Dispatch wird nach `data/optimizer/optimizer_dispatch.csv`
 geschrieben.
 
@@ -317,16 +314,15 @@ Die folgenden Plots werden aus diesen beiden Dateien erzeugt.
 ![Annual cost comparison](data/results/plots/costs.png)
 
 Der Kostenplot vergleicht Baseline und System als gestapelte Balken aus
-Energie- und Leistungskosten. Man erkennt, dass das EMS die Gesamtkosten klar
-senkt; vor allem der Energiebezug wird stark reduziert, während der
-Leistungspreisanteil weiterhin sichtbar bleibt.
+Energie- und Leistungskosten. In der gewählten Demo-Konfiguration senkt das EMS die simulierten Gesamtkosten
+deutlich. Die Ergebnisse dienen als technischer Plausibilitäts- und
+Integrationsnachweis, nicht als validierte Wirtschaftlichkeitsrechnung.
 
 ![Grid import duration curve](data/results/plots/duration_curve.png)
 
-Die Dauerlinie sortiert alle Netzbezugsintervalle absteigend. Sie zeigt, dass
-PV und Batterie viele Intervalle auf sehr niedrigen oder keinen Netzbezug
-bringen. Im oberen Bereich ist außerdem zu erkennen, dass Lastspitzen geglättet
-werden.
+Die Dauerlinie sortiert alle Netzbezugsintervalle absteigend. Sie zeigt, wie
+häufig das System im Vergleich zur Baseline hohe Netzbezugsleistungen benötigt
+und ob Lastspitzen in der Demo-Konfiguration reduziert werden.
 
 ![KPI table](data/results/plots/kpi_table.png)
 
