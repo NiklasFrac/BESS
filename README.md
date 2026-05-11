@@ -1,4 +1,4 @@
-# EMS – Battery Energy Storage System Optimizer
+# Battery Energy Storage System Dispatch Optimizer
 
 Ein modulares Python-System zur physikalischen Simulation und kostenoptimalen
 Steuerung eines Batteriespeichers mit PV-Anlage. Das System kombiniert reale
