@@ -520,7 +520,7 @@ def main() -> None:
     parser.add_argument("--seed", type=int, default=42)
     args = parser.parse_args()
 
-    repo_root = Path(__file__).resolve().parent
+    repo_root = Path(__file__).resolve().parent.parent
     cfg = _load_cfg(repo_root)
     logging.basicConfig(**cfg["logging"], force=True)
     log = logging.getLogger(__name__)

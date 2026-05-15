@@ -338,9 +338,9 @@ Die KPI-Tabelle fasst Baseline, System und Differenz in einer Ansicht zusammen.
 Sie macht sichtbar, wie sich Netzbezug, Kosten, Peak und Autarkie gemeinsam
 verändern und dient als kompakter Überblick über den Gesamteffekt des EMS.
 
-## 7. Sanity Check (`random_benchmark.py`)
+## 7. Sanity Check (`sanity/random_benchmark.py`)
 
-`random_benchmark.py` läuft standardmäßig mit `--runs 100 --seed 42`. Im
+`sanity/random_benchmark.py` läuft standardmäßig mit `--runs 100 --seed 42`. Im
 aktuellen Output wurden `100` zulässige Random-Fahrpläne gegen denselben
 Jahresdatensatz simuliert. Random heißt: PV, Last, Wetter und Tarife bleiben
 identisch; nur `action_kw` wird je Zeitschritt zufällig innerhalb der
