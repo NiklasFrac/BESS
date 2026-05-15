@@ -45,15 +45,15 @@ pv:
 
   module_pdc0: 495.0         # DC-Nennleistung eines Moduls in W bei STC
   gamma_pdc: -0.0029         # Relativer Leistungsabfall pro °C
-  module_count: 1584         
+  module_count: 110         
 
 
 # =============================================================================
 # Inverter
 # =============================================================================
 inverter:
-  pac0_each: 110000.0        # AC-Nennleistung eines Inverters in W
-  inverter_count: 8          
+  pac0_each: 60000.0        # AC-Nennleistung eines Inverters in W
+  inverter_count: 1          
   eta_inv_nom: 0.98         
 
 
@@ -139,7 +139,7 @@ tariff:
 # Battery
 # =============================================================================
 batterie:
-  capacity_kwh: 100.0
+  capacity_kwh: 50.0
   soc_min: 0.05
   soc_max: 0.95
 

@@ -20,8 +20,18 @@ def test_compute_poa_applies_horizon_shading_and_clips_negative_irradiance(
     write_csv(
         dni_path,
         [
-            {"timestamp_utc": "2024-01-01 00:00:00+00:00", "ghi_wm2": -5.0, "dhi_wm2": -1.0, "dni_wm2": 100.0},
-            {"timestamp_utc": "2024-01-01 01:00:00+00:00", "ghi_wm2": 50.0, "dhi_wm2": 10.0, "dni_wm2": 120.0},
+            {
+                "timestamp_utc": "2024-01-01 00:00:00+00:00",
+                "ghi_wm2": -5.0,
+                "dhi_wm2": -1.0,
+                "dni_wm2": 100.0,
+            },
+            {
+                "timestamp_utc": "2024-01-01 01:00:00+00:00",
+                "ghi_wm2": 50.0,
+                "dhi_wm2": 10.0,
+                "dni_wm2": 120.0,
+            },
         ],
     )
     write_csv(
@@ -63,15 +73,25 @@ def test_compute_poa_applies_horizon_shading_and_clips_negative_irradiance(
         captured.update(kwargs)
         return pd.DataFrame(
             {
-                "poa_global": kwargs["dni"].to_numpy() + kwargs["ghi"].to_numpy() + kwargs["dhi"].to_numpy(),
+                "poa_global": kwargs["dni"].to_numpy()
+                + kwargs["ghi"].to_numpy()
+                + kwargs["dhi"].to_numpy(),
                 "poa_direct": kwargs["dni"].to_numpy(),
                 "poa_diffuse": kwargs["dhi"].to_numpy(),
             }
         )
 
-    monkeypatch.setattr(compute_poa_module.pvlib.atmosphere, "get_relative_airmass", fake_airmass)
-    monkeypatch.setattr(compute_poa_module.pvlib.irradiance, "get_extra_radiation", fake_extra_radiation)
-    monkeypatch.setattr(compute_poa_module.pvlib.irradiance, "get_total_irradiance", fake_total_irradiance)
+    monkeypatch.setattr(
+        compute_poa_module.pvlib.atmosphere, "get_relative_airmass", fake_airmass
+    )
+    monkeypatch.setattr(
+        compute_poa_module.pvlib.irradiance, "get_extra_radiation", fake_extra_radiation
+    )
+    monkeypatch.setattr(
+        compute_poa_module.pvlib.irradiance,
+        "get_total_irradiance",
+        fake_total_irradiance,
+    )
 
     compute_poa(
         dni_path=dni_path,
@@ -103,8 +123,18 @@ def test_compute_poa_uses_inner_timestamp_join(tmp_path, monkeypatch):
     write_csv(
         dni_path,
         [
-            {"timestamp_utc": "2024-01-01 00:00:00+00:00", "ghi_wm2": 10.0, "dhi_wm2": 5.0, "dni_wm2": 20.0},
-            {"timestamp_utc": "2024-01-01 01:00:00+00:00", "ghi_wm2": 10.0, "dhi_wm2": 5.0, "dni_wm2": 20.0},
+            {
+                "timestamp_utc": "2024-01-01 00:00:00+00:00",
+                "ghi_wm2": 10.0,
+                "dhi_wm2": 5.0,
+                "dni_wm2": 20.0,
+            },
+            {
+                "timestamp_utc": "2024-01-01 01:00:00+00:00",
+                "ghi_wm2": 10.0,
+                "dhi_wm2": 5.0,
+                "dni_wm2": 20.0,
+            },
         ],
     )
     write_csv(
@@ -126,8 +156,16 @@ def test_compute_poa_uses_inner_timestamp_join(tmp_path, monkeypatch):
         ],
     )
 
-    monkeypatch.setattr(compute_poa_module.pvlib.atmosphere, "get_relative_airmass", lambda zenith: pd.Series([1.0] * len(zenith)))
-    monkeypatch.setattr(compute_poa_module.pvlib.irradiance, "get_extra_radiation", lambda index: pd.Series([1367.0] * len(index)))
+    monkeypatch.setattr(
+        compute_poa_module.pvlib.atmosphere,
+        "get_relative_airmass",
+        lambda zenith: pd.Series([1.0] * len(zenith)),
+    )
+    monkeypatch.setattr(
+        compute_poa_module.pvlib.irradiance,
+        "get_extra_radiation",
+        lambda index: pd.Series([1367.0] * len(index)),
+    )
     monkeypatch.setattr(
         compute_poa_module.pvlib.irradiance,
         "get_total_irradiance",

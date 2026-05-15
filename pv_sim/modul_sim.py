@@ -22,23 +22,35 @@ def compute_energy(
     eta_inv_nom: float,
     freq: str,
 ) -> None:
-    meteo = pd.read_csv(
-        meteo_path,
-        usecols=["timestamp_utc", "TT_10", "FF_10"],
-        parse_dates=["timestamp_utc"],
-    ).sort_values("timestamp_utc").reset_index(drop=True)
+    meteo = (
+        pd.read_csv(
+            meteo_path,
+            usecols=["timestamp_utc", "TT_10", "FF_10"],
+            parse_dates=["timestamp_utc"],
+        )
+        .sort_values("timestamp_utc")
+        .reset_index(drop=True)
+    )
 
-    poa = pd.read_csv(
-        poa_path,
-        usecols=["timestamp_utc", "poa_global"],
-        parse_dates=["timestamp_utc"],
-    ).sort_values("timestamp_utc").reset_index(drop=True)
+    poa = (
+        pd.read_csv(
+            poa_path,
+            usecols=["timestamp_utc", "poa_global"],
+            parse_dates=["timestamp_utc"],
+        )
+        .sort_values("timestamp_utc")
+        .reset_index(drop=True)
+    )
 
-    eff_irr = pd.read_csv(
-        effective_irradiance_path,
-        usecols=["timestamp_utc", "effective_irradiance"],
-        parse_dates=["timestamp_utc"],
-    ).sort_values("timestamp_utc").reset_index(drop=True)
+    eff_irr = (
+        pd.read_csv(
+            effective_irradiance_path,
+            usecols=["timestamp_utc", "effective_irradiance"],
+            parse_dates=["timestamp_utc"],
+        )
+        .sort_values("timestamp_utc")
+        .reset_index(drop=True)
+    )
 
     df = poa.merge(meteo, on="timestamp_utc", how="left", validate="one_to_one")
     df = df.merge(eff_irr, on="timestamp_utc", how="left", validate="one_to_one")
@@ -61,9 +73,8 @@ def compute_energy(
     )
 
     years_since_start = (
-        (df["timestamp_utc"] - df["timestamp_utc"].iloc[0]).dt.total_seconds()
-        / (365.25 * 24 * 3600)
-    )
+        df["timestamp_utc"] - df["timestamp_utc"].iloc[0]
+    ).dt.total_seconds() / (365.25 * 24 * 3600)
     df["age_loss_pct"] = annual_age_loss_pct * years_since_start
 
     loss_pct = pvlib.pvsystem.pvwatts_losses(
@@ -106,4 +117,10 @@ def compute_energy(
         index=False,
         float_format="%.3f",
     )
-    log.info("Gespeichert: %s, %s | Zeilen: %d | AC_kWh: %.1f", out_path, pv_output_path, len(df), df["e_net_ac_kwh"].sum())
+    log.info(
+        "Gespeichert: %s, %s | Zeilen: %d | AC_kWh: %.1f",
+        out_path,
+        pv_output_path,
+        len(df),
+        df["e_net_ac_kwh"].sum(),
+    )

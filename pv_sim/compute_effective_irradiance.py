@@ -16,11 +16,15 @@ def compute_effective_irradiance(
     surface_tilt: float,
     surface_azimuth: float,
 ) -> None:
-    df = pd.read_csv(
-        true_sun_path,
-        usecols=["timestamp_utc", "solar_zenith_deg", "solar_azimuth_deg"],
-        parse_dates=["timestamp_utc"],
-    ).sort_values("timestamp_utc").reset_index(drop=True)
+    df = (
+        pd.read_csv(
+            true_sun_path,
+            usecols=["timestamp_utc", "solar_zenith_deg", "solar_azimuth_deg"],
+            parse_dates=["timestamp_utc"],
+        )
+        .sort_values("timestamp_utc")
+        .reset_index(drop=True)
+    )
 
     df["aoi_deg"] = pvlib.irradiance.aoi(
         surface_tilt=surface_tilt,
@@ -69,4 +73,9 @@ def compute_effective_irradiance(
 
     out_path.parent.mkdir(parents=True, exist_ok=True)
     df.to_csv(out_path, index=False)
-    log.info("Gespeichert: %s | Zeilen: %d | effective_NaN: %d", out_path, len(df), df["effective_irradiance"].isna().sum())
+    log.info(
+        "Gespeichert: %s | Zeilen: %d | effective_NaN: %d",
+        out_path,
+        len(df),
+        df["effective_irradiance"].isna().sum(),
+    )

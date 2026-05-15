@@ -50,7 +50,9 @@ class PvSimParams:
     eta_inv_nom: float
 
 
-def run_pv_sim(paths: PvSimPaths, params: PvSimParams, logging_config: dict | None = None) -> None:
+def run_pv_sim(
+    paths: PvSimPaths, params: PvSimParams, logging_config: dict | None = None
+) -> None:
     if logging_config is not None:
         logging.basicConfig(**logging_config, force=True)
 

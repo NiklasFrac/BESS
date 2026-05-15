@@ -18,9 +18,7 @@ def _daily_summary(df: pd.DataFrame) -> pd.DataFrame:
         e_net_ac_kwh=("e_net_ac_kwh", "sum"),
     )
 
-    daily["e_net_ac_kwh_14d"] = daily["e_net_ac_kwh"].rolling(
-        14, min_periods=1
-    ).mean()
+    daily["e_net_ac_kwh_14d"] = daily["e_net_ac_kwh"].rolling(14, min_periods=1).mean()
 
     return daily
 

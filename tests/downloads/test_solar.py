@@ -133,11 +133,7 @@ def test_download_dwd_10min_solar_rejects_wrong_station_without_writing(
     cfg = solar_cfg()
     response = FakeResponse(
         zip_bytes(
-            {
-                "produkt_zehn_min_sd_00232.txt": solar_csv(
-                    ["202401010000;00044;0;0;x"]
-                )
-            }
+            {"produkt_zehn_min_sd_00232.txt": solar_csv(["202401010000;00044;0;0;x"])}
         )
     )
 

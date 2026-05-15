@@ -11,7 +11,9 @@ def write_csv(path, rows):
 
 def test_check_columns_reports_missing_columns():
     with pytest.raises(ValueError, match="fehlende Spalten"):
-        _check_columns(pd.DataFrame({"timestamp_utc": []}), {"timestamp_utc", "TT_10"}, "Meteo")
+        _check_columns(
+            pd.DataFrame({"timestamp_utc": []}), {"timestamp_utc", "TT_10"}, "Meteo"
+        )
 
 
 def test_compute_apparent_sun_position_uses_midpoint_meteo_and_true_fallback(
@@ -24,9 +26,21 @@ def test_compute_apparent_sun_position_uses_midpoint_meteo_and_true_fallback(
     write_csv(
         meteo_path,
         [
-            {"timestamp_utc": "2024-01-01 00:00:00+00:00", "TT_10": 10.0, "PP_10": 1000.0},
-            {"timestamp_utc": "2024-01-01 01:00:00+00:00", "TT_10": 20.0, "PP_10": 1002.0},
-            {"timestamp_utc": "2024-01-01 02:00:00+00:00", "TT_10": -999.0, "PP_10": 1004.0},
+            {
+                "timestamp_utc": "2024-01-01 00:00:00+00:00",
+                "TT_10": 10.0,
+                "PP_10": 1000.0,
+            },
+            {
+                "timestamp_utc": "2024-01-01 01:00:00+00:00",
+                "TT_10": 20.0,
+                "PP_10": 1002.0,
+            },
+            {
+                "timestamp_utc": "2024-01-01 02:00:00+00:00",
+                "TT_10": -999.0,
+                "PP_10": 1004.0,
+            },
         ],
     )
     write_csv(
@@ -68,7 +82,9 @@ def test_compute_apparent_sun_position_uses_midpoint_meteo_and_true_fallback(
             }
         )
 
-    monkeypatch.setattr(seen_pos_module.pvlib.solarposition, "spa_python", fake_spa_python)
+    monkeypatch.setattr(
+        seen_pos_module.pvlib.solarposition, "spa_python", fake_spa_python
+    )
 
     compute_apparent_sun_position(
         meteo_path=meteo_path,

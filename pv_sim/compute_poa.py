@@ -85,4 +85,6 @@ def compute_poa(
 
     out_path.parent.mkdir(parents=True, exist_ok=True)
     poa.to_csv(out_path, index=False)
-    log.info("Gespeichert: %s | Zeilen: %d | shaded: %d", out_path, len(poa), shaded.sum())
+    log.info(
+        "Gespeichert: %s | Zeilen: %d | shaded: %d", out_path, len(poa), shaded.sum()
+    )

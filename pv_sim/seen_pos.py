@@ -61,8 +61,7 @@ def compute_apparent_sun_position(
     )
 
     meteo = (
-        meteo
-        .set_index("timestamp_utc")
+        meteo.set_index("timestamp_utc")
         .reindex(full_index)
         .rename_axis("timestamp_utc")
         .reset_index()
@@ -71,27 +70,29 @@ def compute_apparent_sun_position(
     meteo["TT_10_mid"] = (meteo["TT_10"] + meteo["TT_10"].shift(1)) / 2
     meteo["PP_10_mid"] = (meteo["PP_10"] + meteo["PP_10"].shift(1)) / 2
 
-    df = pd.merge(
-        true_solar[
-            [
-                "solar_position_reference_utc",
-                "timestamp_utc",
-                "solar_zenith_deg",
-                "solar_elevation_deg",
-                "solar_azimuth_deg",
-            ]
-        ],
-        meteo[["timestamp_utc", "TT_10_mid", "PP_10_mid"]],
-        on="timestamp_utc",
-        how="left",
-        validate="one_to_one",
-    ).sort_values("timestamp_utc").reset_index(drop=True)
+    df = (
+        pd.merge(
+            true_solar[
+                [
+                    "solar_position_reference_utc",
+                    "timestamp_utc",
+                    "solar_zenith_deg",
+                    "solar_elevation_deg",
+                    "solar_azimuth_deg",
+                ]
+            ],
+            meteo[["timestamp_utc", "TT_10_mid", "PP_10_mid"]],
+            on="timestamp_utc",
+            how="left",
+            validate="one_to_one",
+        )
+        .sort_values("timestamp_utc")
+        .reset_index(drop=True)
+    )
 
     df["pressure_Pa"] = df["PP_10_mid"] * 100.0
     df["met_data_complete"] = (
-        df["TT_10_mid"].notna()
-        & df["PP_10_mid"].notna()
-        & (df["pressure_Pa"] > 0)
+        df["TT_10_mid"].notna() & df["PP_10_mid"].notna() & (df["pressure_Pa"] > 0)
     )
 
     mask = df["met_data_complete"]

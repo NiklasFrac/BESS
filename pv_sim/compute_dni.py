@@ -14,11 +14,13 @@ def _read_utc(path: Path, ts_col: str) -> pd.DataFrame:
     df[ts_col] = pd.to_datetime(df[ts_col], utc=True)
     return df
 
+
 def _infer_interval_seconds(ts: pd.Series) -> float:
     diffs = ts.sort_values().diff().dropna().dt.total_seconds()
     if diffs.empty:
         raise ValueError("Cannot infer interval from fewer than two timestamps.")
     return float(diffs.mode().iloc[0])
+
 
 def compute_dni(
     solar_path: Path,
@@ -31,7 +33,6 @@ def compute_dni(
     solar = _read_utc(solar_path, ts_col)[[ts_col, "GS_10", "DS_10"]]
     solpos = _read_utc(sun_position_path, ts_col)[[ts_col, "solar_zenith_deg"]]
 
-    
     df = (
         solpos.merge(solar, on=ts_col, how="left", validate="one_to_one")
         .sort_values(ts_col)
@@ -48,17 +49,12 @@ def compute_dni(
         raise ValueError("solar_unit must be 'jcm2' or 'wm2'")
 
     df["ghi_wm2"] = (
-        pd.to_numeric(df["GS_10"], errors="coerce")
-        .replace(missing, np.nan)
-        * factor
+        pd.to_numeric(df["GS_10"], errors="coerce").replace(missing, np.nan) * factor
     )
 
     df["dhi_wm2"] = (
-        pd.to_numeric(df["DS_10"], errors="coerce")
-        .replace(missing, np.nan)
-        * factor
+        pd.to_numeric(df["DS_10"], errors="coerce").replace(missing, np.nan) * factor
     )
-
 
     zenith = pd.to_numeric(df["solar_zenith_deg"], errors="coerce")
 

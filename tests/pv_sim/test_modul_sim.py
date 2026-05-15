@@ -35,8 +35,14 @@ def test_compute_energy_builds_energy_and_optimizer_output(
     write_csv(
         effective_path,
         [
-            {"timestamp_utc": "2024-01-01 01:00:00+00:00", "effective_irradiance": -10.0},
-            {"timestamp_utc": "2025-01-01 01:00:00+00:00", "effective_irradiance": 500.0},
+            {
+                "timestamp_utc": "2024-01-01 01:00:00+00:00",
+                "effective_irradiance": -10.0,
+            },
+            {
+                "timestamp_utc": "2025-01-01 01:00:00+00:00",
+                "effective_irradiance": 500.0,
+            },
         ],
     )
 
@@ -49,7 +55,9 @@ def test_compute_energy_builds_energy_and_optimizer_output(
     monkeypatch.setattr(
         modul_sim_module.pvlib.pvsystem,
         "pvwatts_dc",
-        lambda effective_irradiance, temp_cell, pdc0, gamma_pdc: effective_irradiance / 1000.0 * pdc0,
+        lambda effective_irradiance, temp_cell, pdc0, gamma_pdc: (
+            effective_irradiance / 1000.0 * pdc0
+        ),
     )
 
     def fake_losses(**kwargs):

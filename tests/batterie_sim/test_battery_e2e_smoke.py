@@ -33,14 +33,18 @@ def test_battery_sim_e2e_smoke_across_month_boundary(
     assert len(temperature_df) == len(actions)
     assert len(degradation_df) == 2
     assert battery_df["timestamp_utc"].is_monotonic_increasing
-    assert temperature_df["timestamp_utc"].tolist() == battery_df[
-        "timestamp_utc"
-    ].tolist()
+    assert (
+        temperature_df["timestamp_utc"].tolist() == battery_df["timestamp_utc"].tolist()
+    )
 
-    assert battery_df["soc_fraction"].between(
-        valid_battery_spec["soc_min"],
-        valid_battery_spec["soc_max"],
-    ).all()
+    assert (
+        battery_df["soc_fraction"]
+        .between(
+            valid_battery_spec["soc_min"],
+            valid_battery_spec["soc_max"],
+        )
+        .all()
+    )
     assert (battery_df["capacity_kwh"] > 0).all()
     assert (battery_df["loss_kwh"] >= 0).all()
     assert battery_df.iloc[0]["actual_kw"] > 0.0

@@ -121,21 +121,31 @@ def assert_dispatch_invariants(
     assert dispatch["planned_soc_next_kwh"].tolist() == pytest.approx(
         expected_soc_next.tolist()
     )
-    assert dispatch["planned_soc_kwh"].between(
-        system.e_nom_kwh * system.soc_min,
-        system.e_nom_kwh * system.soc_max,
-    ).all()
-    assert dispatch["planned_soc_next_kwh"].between(
-        system.e_nom_kwh * system.soc_min,
-        system.e_nom_kwh * system.soc_max,
-    ).all()
+    assert (
+        dispatch["planned_soc_kwh"]
+        .between(
+            system.e_nom_kwh * system.soc_min,
+            system.e_nom_kwh * system.soc_max,
+        )
+        .all()
+    )
+    assert (
+        dispatch["planned_soc_next_kwh"]
+        .between(
+            system.e_nom_kwh * system.soc_min,
+            system.e_nom_kwh * system.soc_max,
+        )
+        .all()
+    )
     assert dispatch["planned_grid_import_kw"].between(0.0, system.p_grid_max_kw).all()
-    assert dispatch["planned_battery_charge_kw"].between(
-        0.0, system.p_charge_max_kw
-    ).all()
-    assert dispatch["planned_battery_discharge_kw"].between(
-        0.0, system.p_discharge_max_kw
-    ).all()
+    assert (
+        dispatch["planned_battery_charge_kw"].between(0.0, system.p_charge_max_kw).all()
+    )
+    assert (
+        dispatch["planned_battery_discharge_kw"]
+        .between(0.0, system.p_discharge_max_kw)
+        .all()
+    )
     assert dispatch["planned_pv_curtailment_kw"].ge(0.0).all()
     assert (dispatch["planned_pv_curtailment_kw"] <= dispatch["pv_kw"]).all()
     assert result["p_peak_new_kw"] >= initial.p_peak_year_before_kw
@@ -151,9 +161,10 @@ def test_optimize_returns_expected_frames_and_respects_core_invariants():
     assert set(result) == {"action", "dispatch", "p_peak_new_kw", "e_end_kwh"}
     assert result["dispatch"].columns.tolist() == DISPATCH_COLUMNS
     assert result["action"].columns.tolist() == ["timestamp_utc", "action_kw"]
-    assert result["action"]["timestamp_utc"].tolist() == result["dispatch"][
-        "timestamp_utc"
-    ].tolist()
+    assert (
+        result["action"]["timestamp_utc"].tolist()
+        == result["dispatch"]["timestamp_utc"].tolist()
+    )
     assert result["action"]["action_kw"].tolist() == pytest.approx(
         result["dispatch"]["planned_battery_action_kw"].tolist()
     )
@@ -244,7 +255,9 @@ def test_optimize_raises_runtime_error_when_solver_is_not_optimal(monkeypatch):
                 )
             )
 
-    monkeypatch.setattr(optimizer_module.pyo, "SolverFactory", lambda _name: FakeSolver())
+    monkeypatch.setattr(
+        optimizer_module.pyo, "SolverFactory", lambda _name: FakeSolver()
+    )
 
     with pytest.raises(RuntimeError, match="Optimization failed: infeasible"):
         solve()

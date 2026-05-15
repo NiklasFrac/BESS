@@ -202,9 +202,9 @@ def test_simulate_period_processes_unsorted_actions_in_timestamp_order(
         pd.Timestamp("2024-01-01 01:00:00+00:00"),
         pd.Timestamp("2024-01-01 02:00:00+00:00"),
     ]
-    assert temperature_df["timestamp_utc"].tolist() == battery_df[
-        "timestamp_utc"
-    ].tolist()
+    assert (
+        temperature_df["timestamp_utc"].tolist() == battery_df["timestamp_utc"].tolist()
+    )
     assert degradation_df.empty
     assert state.current_month == (2024, 1)
 
@@ -244,7 +244,9 @@ def test_simulate_period_outputs_stable_frames_and_updates_state_buffers(
     assert state.soc_kwh == pytest.approx(battery_df.iloc[-1]["soc_kwh"])
     assert state.battery_temp_degC != pytest.approx(20.0)
     assert state.month_soc == pytest.approx(battery_df["soc_fraction"].tolist())
-    assert state.month_temp == pytest.approx(temperature_df["battery_temp_degC"].tolist())
+    assert state.month_temp == pytest.approx(
+        temperature_df["battery_temp_degC"].tolist()
+    )
     assert state.month_power == pytest.approx(battery_df["actual_kw"].tolist())
 
 

@@ -20,8 +20,16 @@ def test_compute_dni_converts_jcm2_inputs_and_preserves_missing_values(
     write_csv(
         solar_path,
         [
-            {"timestamp_utc": "2024-01-01 00:00:00+00:00", "GS_10": 36.0, "DS_10": 18.0},
-            {"timestamp_utc": "2024-01-01 01:00:00+00:00", "GS_10": -999.0, "DS_10": 9.0},
+            {
+                "timestamp_utc": "2024-01-01 00:00:00+00:00",
+                "GS_10": 36.0,
+                "DS_10": 18.0,
+            },
+            {
+                "timestamp_utc": "2024-01-01 01:00:00+00:00",
+                "GS_10": -999.0,
+                "DS_10": 9.0,
+            },
         ],
     )
     write_csv(
@@ -74,4 +82,6 @@ def test_compute_dni_rejects_unknown_solar_unit(tmp_path):
     )
 
     with pytest.raises(ValueError, match="solar_unit"):
-        compute_dni(solar_path, sun_path, tmp_path / "dni.csv", "timestamp_utc", -999.0, "bad")
+        compute_dni(
+            solar_path, sun_path, tmp_path / "dni.csv", "timestamp_utc", -999.0, "bad"
+        )

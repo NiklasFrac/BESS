@@ -24,6 +24,7 @@ class BatterySimulationState:
     month_temp: list[float] = field(default_factory=list)
     month_power: list[float] = field(default_factory=list)
 
+
 def _prepare_action_df(action_df: pd.DataFrame) -> pd.DataFrame:
     cols = ["timestamp_utc", "action_kw", "ambient_temp_degC"]
     missing = set(cols) - set(action_df.columns)
@@ -87,6 +88,10 @@ def _close_degradation_period(
 ) -> dict | None:
     if not state.month_soc:
         return None
+    current_month = state.current_month
+    if current_month is None:
+        raise RuntimeError("Cannot close degradation period without current_month.")
+    period_year, period_month = current_month
 
     degradation_state, info = update_degradation_for_period(
         state=state.degradation_state,
@@ -109,8 +114,8 @@ def _close_degradation_period(
 
     row = {
         "timestamp_utc": pd.to_datetime(timestamp_utc, utc=True),
-        "period_year": state.current_month[0],
-        "period_month": state.current_month[1],
+        "period_year": period_year,
+        "period_month": period_month,
         **info,
         **state.degradation_state,
     }

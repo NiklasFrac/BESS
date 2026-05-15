@@ -168,15 +168,21 @@ def step(
 
         p_kw = min(p_nominal_kw, max_charge_kw_effective)
 
-        charge_power_limited_ac_kwh = max(
-            p_requested_kw - charge_cfg["max_kw"],
-            0.0,
-        ) * dt_h
+        charge_power_limited_ac_kwh = (
+            max(
+                p_requested_kw - charge_cfg["max_kw"],
+                0.0,
+            )
+            * dt_h
+        )
 
-        charge_temp_limited_ac_kwh = max(
-            p_nominal_kw - max_charge_kw_effective,
-            0.0,
-        ) * dt_h
+        charge_temp_limited_ac_kwh = (
+            max(
+                p_nominal_kw - max_charge_kw_effective,
+                0.0,
+            )
+            * dt_h
+        )
 
         if p_kw > 0.0:
             eta_charge_effective = _eta_T(
@@ -198,9 +204,7 @@ def step(
 
             state["soc_kwh"] += delta_soc
 
-            charge_ac_kwh = (
-                delta_soc / eta_charge_effective if delta_soc > 0.0 else 0.0
-            )
+            charge_ac_kwh = delta_soc / eta_charge_effective if delta_soc > 0.0 else 0.0
             charge_soc_limited_ac_kwh = potential_charge_ac_kwh - charge_ac_kwh
             loss_kwh = charge_ac_kwh - delta_soc
 
@@ -211,15 +215,21 @@ def step(
 
         p_kw = min(p_nominal_kw, max_discharge_kw_effective)
 
-        discharge_power_limited_ac_kwh = max(
-            p_requested_kw - discharge_cfg["max_kw"],
-            0.0,
-        ) * dt_h
+        discharge_power_limited_ac_kwh = (
+            max(
+                p_requested_kw - discharge_cfg["max_kw"],
+                0.0,
+            )
+            * dt_h
+        )
 
-        discharge_temp_limited_ac_kwh = max(
-            p_nominal_kw - max_discharge_kw_effective,
-            0.0,
-        ) * dt_h
+        discharge_temp_limited_ac_kwh = (
+            max(
+                p_nominal_kw - max_discharge_kw_effective,
+                0.0,
+            )
+            * dt_h
+        )
 
         if p_kw > 0.0:
             eta_discharge_effective = _eta_T(
@@ -242,9 +252,7 @@ def step(
             state["soc_kwh"] -= delta_soc
 
             discharge_ac_kwh = delta_soc * eta_discharge_effective
-            discharge_soc_limited_ac_kwh = (
-                potential_discharge_ac_kwh - discharge_ac_kwh
-            )
+            discharge_soc_limited_ac_kwh = potential_discharge_ac_kwh - discharge_ac_kwh
             loss_kwh = delta_soc - discharge_ac_kwh
 
     soc_after = state["soc_kwh"]
@@ -252,7 +260,6 @@ def step(
     return {
         "soc_before_kwh": soc_before,
         "soc_after_kwh": soc_after,
-
         "charge_ac_kwh": charge_ac_kwh,
         "discharge_ac_kwh": discharge_ac_kwh,
         "charge_power_limited_ac_kwh": charge_power_limited_ac_kwh,
@@ -264,12 +271,10 @@ def step(
         "discharge_temp_limited_ac_kwh": discharge_temp_limited_ac_kwh,
         "eta_charge_effective": eta_charge_effective,
         "eta_discharge_effective": eta_discharge_effective,
-
         "charge_power_factor": charge_power_factor,
         "discharge_power_factor": discharge_power_factor,
         "max_charge_kw_effective": max_charge_kw_effective,
         "max_discharge_kw_effective": max_discharge_kw_effective,
-
         "charge_soc_limited_ac_kwh": charge_soc_limited_ac_kwh,
         "discharge_soc_limited_ac_kwh": discharge_soc_limited_ac_kwh,
     }

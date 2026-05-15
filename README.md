@@ -338,7 +338,34 @@ Die KPI-Tabelle fasst Baseline, System und Differenz in einer Ansicht zusammen.
 Sie macht sichtbar, wie sich Netzbezug, Kosten, Peak und Autarkie gemeinsam
 verändern und dient als kompakter Überblick über den Gesamteffekt des EMS.
 
-## 7. Development
+## 7. Sanity Check (`random_benchmark.py`)
+
+`random_benchmark.py` läuft standardmäßig mit `--runs 100 --seed 42`. Im
+aktuellen Output wurden `100` zulässige Random-Fahrpläne gegen denselben
+Jahresdatensatz simuliert. Random heißt: PV, Last, Wetter und Tarife bleiben
+identisch; nur `action_kw` wird je Zeitschritt zufällig innerhalb der
+planerisch zulässigen Grenzen gezogen.
+
+```text
+grid_import_kw = max(Load_t - PV_t + actual_kw_t, 0)
+grid_import_kwh = grid_import_kw * Delta t
+
+grid_cost = sum(grid_import_kwh * energy_price)
+          + demand_charge * max(grid_import_kw)
+
+wear_proxy = sum(eta_charge * E_charge_ac
+                 + E_discharge_ac / eta_discharge)
+             * replacement_cost / (2 * usable_capacity * expected_efc)
+
+Aktueller Befund aus `data/results/random_benchmark_summary.csv`: Der Optimizer
+liegt bei den Netzkosten unter allen `100` Random-Runs (`0/100` Random-Runs
+besser). Beispielwerte aus dem aktuellen Demo-Output: Optimizer `3592 EUR`
+Grid-Kosten vs. Random-Median `4589 EUR`. Gleichzeitig ist der Optimizer
+aggressiver: `228` kumulative EFC und `1.286 kWh` Kapazitätsverlust vs.
+Random-Median `144` EFC und `0.958 kWh`. Die Zahlen sind wie bereits erwähnt Demo-Kennzahlen.
+
+
+## 8. Development
 
 ### Reproduzierbares Setup
 

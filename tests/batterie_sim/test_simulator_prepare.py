@@ -33,9 +33,7 @@ def test_prepare_action_df_selects_sorts_converts_and_resets_index():
         pd.Timestamp("2024-01-01 03:00:00+00:00"),
     ]
     assert prepared["action_kw"].tolist() == pytest.approx([0.0, 1.5, 2.5])
-    assert prepared["ambient_temp_degC"].tolist() == pytest.approx(
-        [10.0, 11.0, 13.0]
-    )
+    assert prepared["ambient_temp_degC"].tolist() == pytest.approx([10.0, 11.0, 13.0])
 
 
 def test_prepare_action_df_converts_aware_timestamps_to_utc():

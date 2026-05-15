@@ -55,13 +55,25 @@ def test_run_pv_sim_calls_pipeline_steps_in_order(monkeypatch):
         return record
 
     monkeypatch.setattr(runner_module, "compute_true_sun_position", recorder("true"))
-    monkeypatch.setattr(runner_module, "compute_apparent_sun_position", recorder("apparent"))
+    monkeypatch.setattr(
+        runner_module, "compute_apparent_sun_position", recorder("apparent")
+    )
     monkeypatch.setattr(runner_module, "compute_dni", recorder("dni"))
     monkeypatch.setattr(runner_module, "compute_poa", recorder("poa"))
-    monkeypatch.setattr(runner_module, "compute_effective_irradiance", recorder("effective"))
+    monkeypatch.setattr(
+        runner_module, "compute_effective_irradiance", recorder("effective")
+    )
     monkeypatch.setattr(runner_module, "compute_energy", recorder("energy"))
-    monkeypatch.setattr(runner_module, "plot_energy_overview", lambda *args: calls.append(("energy_plot", args)))
-    monkeypatch.setattr(runner_module, "plot_horizon_profile", lambda *args: calls.append(("horizon_plot", args)))
+    monkeypatch.setattr(
+        runner_module,
+        "plot_energy_overview",
+        lambda *args: calls.append(("energy_plot", args)),
+    )
+    monkeypatch.setattr(
+        runner_module,
+        "plot_horizon_profile",
+        lambda *args: calls.append(("horizon_plot", args)),
+    )
 
     p = paths()
     cfg = params()

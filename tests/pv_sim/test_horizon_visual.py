@@ -4,7 +4,10 @@ import pytest
 
 matplotlib.use("Agg")
 
-from pv_sim.visualization.horizon_visual import _horizon_coordinates, plot_horizon_profile
+from pv_sim.visualization.horizon_visual import (
+    _horizon_coordinates,
+    plot_horizon_profile,
+)
 
 
 def test_horizon_coordinates_close_loop_and_map_cardinal_directions():

@@ -18,8 +18,8 @@ def _horizon_coordinates(df: pd.DataFrame) -> tuple[np.ndarray, np.ndarray, np.n
     az = np.r_[az, az[0]]
     z = np.r_[z, z[0]]
 
-    x = np.sin(az)   # Osten
-    y = np.cos(az)   # Norden
+    x = np.sin(az)  # Osten
+    y = np.cos(az)  # Norden
     return x, y, z
 
 
@@ -39,7 +39,7 @@ def plot_horizon_profile(
 
     ax.plot(x, y, np.zeros_like(z), lw=1.0, alpha=0.35, color="black")
     ax.plot(x, y, z, lw=2.5, color="tab:blue", label="Horizont")
-    
+
     step = max(1, len(x) // 36)
     for xi, yi, zi in zip(x[::step], y[::step], z[::step]):
         ax.plot([xi, xi], [yi, yi], [0, zi], lw=0.8, alpha=0.35, color="tab:blue")
@@ -49,8 +49,12 @@ def plot_horizon_profile(
     label_z = 0.03 * z_max
     ax.text(0, 1.15, label_z, "N", ha="center", va="center", fontsize=12, weight="bold")
     ax.text(1.15, 0, label_z, "O", ha="center", va="center", fontsize=12, weight="bold")
-    ax.text(0, -1.15, label_z, "S", ha="center", va="center", fontsize=12, weight="bold")
-    ax.text(-1.15, 0, label_z, "W", ha="center", va="center", fontsize=12, weight="bold")
+    ax.text(
+        0, -1.15, label_z, "S", ha="center", va="center", fontsize=12, weight="bold"
+    )
+    ax.text(
+        -1.15, 0, label_z, "W", ha="center", va="center", fontsize=12, weight="bold"
+    )
 
     ax.set_xlabel("Ost")
     ax.set_ylabel("Nord")

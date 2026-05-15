@@ -10,8 +10,14 @@ from pv_sim.runner import PvSimParams, PvSimPaths, run_pv_sim
 from download.run_downloads import main as run_downloads
 from evaluation.grid_costs import write_load_grid_costs, write_system_grid_costs
 from optimizer.forecast_df import resample_power_temp
-from optimizer.optimizer import OptimizerEconomicParams, OptimizerInitialStates, OptimizerSystemParams, optimize_energy_system
+from optimizer.optimizer import (
+    OptimizerEconomicParams,
+    OptimizerInitialStates,
+    OptimizerSystemParams,
+    optimize_energy_system,
+)
 from evaluation.result_plots import make_eval_plots
+
 
 def main() -> None:
     repo_root = Path(__file__).resolve().parent
@@ -92,11 +98,16 @@ def main() -> None:
 
     load_df = pd.read_csv(repo_root / cfg["paths"]["single"])
     is_b = load_df["timestamp"].str.endswith(" b")
-    load_df["timestamp_utc"] = pd.to_datetime(load_df["timestamp"]
-                            .str.replace(" b", "", regex=False),
-                            format="%d.%m.%Y %H:%M:%S").dt.tz_localize("Europe/Berlin",
-                            ambiguous=(~is_b).to_numpy(),
-                            nonexistent="shift_forward").dt.tz_convert("UTC")
+    load_df["timestamp_utc"] = (
+        pd.to_datetime(
+            load_df["timestamp"].str.replace(" b", "", regex=False),
+            format="%d.%m.%Y %H:%M:%S",
+        )
+        .dt.tz_localize(
+            "Europe/Berlin", ambiguous=(~is_b).to_numpy(), nonexistent="shift_forward"
+        )
+        .dt.tz_convert("UTC")
+    )
 
     forecast_df["merge_key"] = forecast_df["timestamp_utc"].dt.strftime("%m-%d %H:%M")
     load_df["merge_key"] = load_df["timestamp_utc"].dt.strftime("%m-%d %H:%M")
@@ -120,7 +131,9 @@ def main() -> None:
 
     for i, (day, day_df) in enumerate(day_groups):
         if i % 30 == 0 or i == len(day_groups) - 1:
-            log.info("Fortschritt Optimizer/Batterie: %d/%d Tage", i + 1, len(day_groups))
+            log.info(
+                "Fortschritt Optimizer/Batterie: %d/%d Tage", i + 1, len(day_groups)
+            )
 
         result = optimize_energy_system(
             system_params=replace(system_params, e_nom_kwh=battery_state.capacity_kwh),
@@ -143,7 +156,8 @@ def main() -> None:
             cfg["degradation"],
             system_params.dt_h,
             battery_state,
-            finalize_period=i == len(day_groups) - 1 or day_groups[i + 1][0].month != day.month,
+            finalize_period=i == len(day_groups) - 1
+            or day_groups[i + 1][0].month != day.month,
         )
 
         realized_df = day_df[["timestamp_utc", "pv_kw", "load_kw"]].merge(
@@ -166,14 +180,30 @@ def main() -> None:
     optimizer_path.parent.mkdir(parents=True, exist_ok=True)
     log.info("Schreibe Ergebnisse")
 
-    pd.concat(optimizer_dispatch_results).to_csv(optimizer_path, index=False, float_format="%.3f")
+    pd.concat(optimizer_dispatch_results).to_csv(
+        optimizer_path, index=False, float_format="%.3f"
+    )
     pd.concat(battery_results).to_csv(battery_path, index=False, float_format="%.3f")
-    pd.concat(temperature_results).to_csv(repo_root / cfg["paths"]["bat_temp"], index=False, float_format="%.3f")
-    pd.concat(degradation_results).to_csv(repo_root / cfg["paths"]["bat_degradation"], index=False, float_format="%.3f")
+    pd.concat(temperature_results).to_csv(
+        repo_root / cfg["paths"]["bat_temp"], index=False, float_format="%.3f"
+    )
+    pd.concat(degradation_results).to_csv(
+        repo_root / cfg["paths"]["bat_degradation"], index=False, float_format="%.3f"
+    )
 
     cost_args = {**cfg["tariff"], "dt_h": system_params.dt_h}
-    write_load_grid_costs(repo_root / path_cfg["single"], repo_root / path_cfg["ems_baseline_dispatch"], **cost_args)
-    write_system_grid_costs(repo_root / path_cfg["single"], paths.pv_output, battery_path, repo_root / path_cfg["ems_system_dispatch"], **cost_args)
+    write_load_grid_costs(
+        repo_root / path_cfg["single"],
+        repo_root / path_cfg["ems_baseline_dispatch"],
+        **cost_args,
+    )
+    write_system_grid_costs(
+        repo_root / path_cfg["single"],
+        paths.pv_output,
+        battery_path,
+        repo_root / path_cfg["ems_system_dispatch"],
+        **cost_args,
+    )
 
     log.info("Erzeuge Auswertungen")
     make_eval_plots(
@@ -184,6 +214,7 @@ def main() -> None:
         repo_root / path_cfg["kpi_table_plot"],
     )
     log.info("Fertig")
+
 
 if __name__ == "__main__":
     main()

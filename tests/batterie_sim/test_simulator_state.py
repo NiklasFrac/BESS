@@ -165,6 +165,7 @@ def test_close_degradation_period_updates_state_and_returns_row(
         timestamp_utc="2024-02-01 00:00:00+00:00",
     )
 
+    assert row is not None
     assert captured["soc_fraction_series"] == pytest.approx([0.9, 0.8])
     assert captured["battery_temp_degC_series"] == pytest.approx([20.0, 21.0])
     assert captured["power_kW_series"] == pytest.approx([10.0, -5.0])

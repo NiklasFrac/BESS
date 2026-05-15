@@ -61,22 +61,20 @@ def _read_dwd_product(
 
     if "MESS_DATUM" not in df.columns:
         raise KeyError("Spalte 'MESS_DATUM' nicht gefunden.")
-    df["timestamp_utc"] = (
-        pd.to_datetime(
-            df["MESS_DATUM"].astype(str).str.strip(),
-            format="%Y%m%d%H%M",
-            errors="raise",
-        )
-        .dt.tz_localize("UTC")
-    )
+    df["timestamp_utc"] = pd.to_datetime(
+        df["MESS_DATUM"].astype(str).str.strip(),
+        format="%Y%m%d%H%M",
+        errors="raise",
+    ).dt.tz_localize("UTC")
 
     if "STATIONS_ID" not in df.columns:
         raise KeyError("Spalte 'STATIONS_ID' nicht gefunden.")
-    ids = pd.to_numeric(df["STATIONS_ID"], errors="coerce").dropna().astype(int).unique()
+    ids = (
+        pd.to_numeric(df["STATIONS_ID"], errors="coerce").dropna().astype(int).unique()
+    )
     if len(ids) != 1 or ids[0] != int(station_id):
         raise ValueError(
-            f"Unerwartete STATIONS_ID. Erwartet: {station_id}, "
-            f"gefunden: {ids.tolist()}"
+            f"Unerwartete STATIONS_ID. Erwartet: {station_id}, gefunden: {ids.tolist()}"
         )
 
     mask = (df["timestamp_utc"] >= start_utc) & (df["timestamp_utc"] < end_utc)

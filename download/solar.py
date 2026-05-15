@@ -57,11 +57,12 @@ def download_dwd_10min_solar(cfg: dict, repo_root: Path) -> None:
 
     if "STATIONS_ID" not in df.columns:
         raise KeyError("Spalte 'STATIONS_ID' nicht gefunden.")
-    ids = pd.to_numeric(df["STATIONS_ID"], errors="coerce").dropna().astype(int).unique()
+    ids = (
+        pd.to_numeric(df["STATIONS_ID"], errors="coerce").dropna().astype(int).unique()
+    )
     if len(ids) != 1 or ids[0] != int(station_id):
         raise ValueError(
-            f"Unerwartete STATIONS_ID. Erwartet: {station_id}, "
-            f"gefunden: {ids.tolist()}"
+            f"Unerwartete STATIONS_ID. Erwartet: {station_id}, gefunden: {ids.tolist()}"
         )
 
     df["timestamp_utc"] = pd.to_datetime(

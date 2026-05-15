@@ -32,7 +32,10 @@ def main() -> None:
 
     steps = [
         ("DWD Metadaten Download", lambda: download_station_metadata(cfg, repo_root)),
-        ("DWD Wetter Download", lambda: download_dwd_temp_pressure_wind(cfg, repo_root)),
+        (
+            "DWD Wetter Download",
+            lambda: download_dwd_temp_pressure_wind(cfg, repo_root),
+        ),
         ("DWD Solar Download", lambda: download_dwd_10min_solar(cfg, repo_root)),
         ("PVGIS Horizont Download", lambda: download_pvgis_horizon(cfg, repo_root)),
     ]

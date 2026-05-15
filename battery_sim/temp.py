@@ -46,7 +46,9 @@ def step_temperature(
     heat_to_battery_kwh = heat_loss_kwh * spec["heat_to_battery_fraction"]
     heat_to_battery_kw = heat_to_battery_kwh / dt_h
 
-    thermal_resistance = spec["thermal_time_constant_h"] / spec["heat_capacity_kwh_per_degC"]
+    thermal_resistance = (
+        spec["thermal_time_constant_h"] / spec["heat_capacity_kwh_per_degC"]
+    )
     equilibrium_temp = ambient_temp_degC + thermal_resistance * heat_to_battery_kw
     decay = math.exp(-dt_h / spec["thermal_time_constant_h"])
     temp_after = equilibrium_temp + (temp_before - equilibrium_temp) * decay
@@ -58,5 +60,3 @@ def step_temperature(
         "heat_loss_kwh": heat_loss_kwh,
         "heat_to_battery_kwh": heat_to_battery_kwh,
     }
-
-

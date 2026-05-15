@@ -21,8 +21,16 @@ def test_compute_effective_irradiance_merges_inputs_and_applies_iam_formula(
     write_csv(
         true_path,
         [
-            {"timestamp_utc": "2024-01-01 01:00:00+00:00", "solar_zenith_deg": 50.0, "solar_azimuth_deg": 180.0},
-            {"timestamp_utc": "2024-01-01 00:00:00+00:00", "solar_zenith_deg": 40.0, "solar_azimuth_deg": 170.0},
+            {
+                "timestamp_utc": "2024-01-01 01:00:00+00:00",
+                "solar_zenith_deg": 50.0,
+                "solar_azimuth_deg": 180.0,
+            },
+            {
+                "timestamp_utc": "2024-01-01 00:00:00+00:00",
+                "solar_zenith_deg": 40.0,
+                "solar_azimuth_deg": 170.0,
+            },
         ],
     )
     write_csv(
@@ -42,15 +50,37 @@ def test_compute_effective_irradiance_merges_inputs_and_applies_iam_formula(
     write_csv(
         poa_path,
         [
-            {"timestamp_utc": "2024-01-01 00:00:00+00:00", "poa_direct": 100.0, "poa_diffuse": 20.0},
-            {"timestamp_utc": "2024-01-01 01:00:00+00:00", "poa_direct": 200.0, "poa_diffuse": 30.0},
+            {
+                "timestamp_utc": "2024-01-01 00:00:00+00:00",
+                "poa_direct": 100.0,
+                "poa_diffuse": 20.0,
+            },
+            {
+                "timestamp_utc": "2024-01-01 01:00:00+00:00",
+                "poa_direct": 200.0,
+                "poa_diffuse": 30.0,
+            },
         ],
     )
 
-    monkeypatch.setattr(effective_module.pvlib.irradiance, "aoi", lambda **kwargs: pd.Series([10.0, 20.0]))
-    monkeypatch.setattr(effective_module.pvlib.atmosphere, "get_relative_airmass", lambda zenith, model: pd.Series([1.1, 1.2]))
-    monkeypatch.setattr(effective_module.pvlib.atmosphere, "get_absolute_airmass", lambda rel, pressure: rel * pressure / 100000.0)
-    monkeypatch.setattr(effective_module.pvlib.iam, "physical", lambda aoi: pd.Series([0.9, 0.8]))
+    monkeypatch.setattr(
+        effective_module.pvlib.irradiance,
+        "aoi",
+        lambda **kwargs: pd.Series([10.0, 20.0]),
+    )
+    monkeypatch.setattr(
+        effective_module.pvlib.atmosphere,
+        "get_relative_airmass",
+        lambda zenith, model: pd.Series([1.1, 1.2]),
+    )
+    monkeypatch.setattr(
+        effective_module.pvlib.atmosphere,
+        "get_absolute_airmass",
+        lambda rel, pressure: rel * pressure / 100000.0,
+    )
+    monkeypatch.setattr(
+        effective_module.pvlib.iam, "physical", lambda aoi: pd.Series([0.9, 0.8])
+    )
 
     compute_effective_irradiance(
         true_sun_path=true_path,

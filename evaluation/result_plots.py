@@ -5,7 +5,13 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 
-REQ = {"timestamp_utc", "load_kw", "grid_import_kw", "energy_cost_eur", "demand_increment_cost_eur"}
+REQ = {
+    "timestamp_utc",
+    "load_kw",
+    "grid_import_kw",
+    "energy_cost_eur",
+    "demand_increment_cost_eur",
+}
 
 
 def _read(path: str | Path) -> pd.DataFrame:

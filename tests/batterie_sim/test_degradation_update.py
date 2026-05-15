@@ -141,11 +141,7 @@ def test_cycle_fade_formula_uses_rainflow_dod_and_count(
 
     _state, info = run_update(spec)
 
-    expected = (
-        spec["cycle_fade_per_efc_at_100dod"]
-        * 0.5
-        * 0.8 ** spec["dod_exponent"]
-    )
+    expected = spec["cycle_fade_per_efc_at_100dod"] * 0.5 * 0.8 ** spec["dod_exponent"]
     assert info["efc"] == pytest.approx(0.8 * 0.5)
     assert info["cycle_fade"] == pytest.approx(expected)
 
