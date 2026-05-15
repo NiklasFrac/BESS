@@ -356,7 +356,7 @@ grid_cost = sum(grid_import_kwh * energy_price)
 wear_proxy = sum(eta_charge * E_charge_ac
                  + E_discharge_ac / eta_discharge)
              * replacement_cost / (2 * usable_capacity * expected_efc)
-
+```
 Aktueller Befund aus `data/results/random_benchmark_summary.csv`: Der Optimizer
 liegt bei den Netzkosten unter allen `100` Random-Runs (`0/100` Random-Runs
 besser). Beispielwerte aus dem aktuellen Demo-Output: Optimizer `3592 EUR`
