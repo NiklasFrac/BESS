@@ -365,7 +365,7 @@ aggressiver: `228` kumulative EFC und `1.286 kWh` Kapazitätsverlust vs.
 Random-Median `144` EFC und `0.958 kWh`. Die Zahlen sind wie bereits erwähnt Demo-Kennzahlen.
 
 
-## 8. Development
+## 8. Setup und Qualitätssicherung
 
 ### Reproduzierbares Setup
 
