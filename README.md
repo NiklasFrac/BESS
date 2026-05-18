@@ -54,9 +54,7 @@ fehlenden Daten erzeugen.
 2. `NaN`-Werte in den Solardaten führen dazu, dass die PV-Produktion am
    zugehörigen Zeitstempel im finalen `pv_output.csv` auf `0` gesetzt wird.
    Dadurch wird vermieden, dass aus fehlenden Strahlungsdaten künstlich Energie
-   erzeugt wird. Ein analoges Auffüllen über Nachbarstationen wird hier bewusst
-   nicht gemacht, weil lokale Wolken und Verschattung Solardaten deutlich
-   spekulativer machen als Meteodaten.
+   erzeugt wird.
 3. Das rohe Horizontprofil `data/pv/raw/pvgis_horizon_augsburg_raw.csv` wird in
    `validation.py` eingelesen und auf `NaN`-Werte in `horizon_height_deg`
    untersucht. Gefundene `NaN`-Werte werden auf `0` gesetzt; daraus entsteht
