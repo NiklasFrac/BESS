@@ -16,6 +16,14 @@ time:
   end_utc: "2025-01-01 00:00:00"
   freq: "10min"              # Solar / Energy data
   interval_minutes: 15       # Firm data
+
+
+# =============================================================================
+# Validation
+# =============================================================================
+validation:
+  max_gap_length: "60min"
+  max_distance: 50.0
   
 
 # =============================================================================
@@ -82,7 +90,6 @@ paths:
   # ---------------------------------------------------------------------------
   pvgis_raw: "data/pv/raw/pvgis_horizon_augsburg_raw.csv"
   meteo_raw: "data/pv/raw/dwd_meteo_raw.csv"
-  solar_raw: "data/pv/raw/dwd_solar_data_raw.csv"
     
   # ---------------------------------------------------------------------------
   # General

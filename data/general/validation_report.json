@@ -1,1 +1,64 @@
-{"pvgis": {"file": "C:\\EMS\\data\\pv\\raw\\pvgis_horizon_augsburg_raw.csv", "horizon_height_deg_nan_replaced": 0}}
+{
+  "pvgis": {
+    "file": "data/pv/raw/pvgis_horizon_augsburg_raw.csv",
+    "horizon_height_deg_nan_replaced": 0
+  },
+  "meteo": {
+    "file": "data/pv/raw/dwd_meteo_raw.csv",
+    "output": "data/pv/actual/dwd_meteo.csv",
+    "columns": {
+      "TT_10": {
+        "interpolated": [],
+        "filled_from_station": [
+          {
+            "start": "2024-06-01 08:00:00+00:00",
+            "end": "2024-06-05 13:50:00+00:00",
+            "count": 612,
+            "station_id": "00142",
+            "station_name": "Altom\u00fcnster-Maisbrunn Bayern",
+            "distance": 27.417
+          }
+        ]
+      },
+      "PP_10": {
+        "interpolated": [],
+        "filled_from_station": [
+          {
+            "start": "2024-06-01 08:00:00+00:00",
+            "end": "2024-06-05 13:40:00+00:00",
+            "count": 611,
+            "station_id": "02023",
+            "station_name": "Harburg Bayern",
+            "distance": 44.353
+          }
+        ]
+      },
+      "FF_10": {
+        "interpolated": [],
+        "filled_from_station": [
+          {
+            "start": "2024-03-06 09:00:00+00:00",
+            "end": "2024-03-06 10:30:00+00:00",
+            "count": 10,
+            "station_id": "02023",
+            "station_name": "Harburg Bayern",
+            "distance": 44.353
+          },
+          {
+            "start": "2024-06-01 08:00:00+00:00",
+            "end": "2024-06-05 13:50:00+00:00",
+            "count": 612,
+            "station_id": "02023",
+            "station_name": "Harburg Bayern",
+            "distance": 44.353
+          }
+        ]
+      }
+    },
+    "remaining_nan": {
+      "TT_10": 0,
+      "PP_10": 0,
+      "FF_10": 0
+    }
+  }
+}

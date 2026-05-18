@@ -8,7 +8,7 @@ import yaml
 from battery_sim.simulator import initial_simulation_state, simulate_period
 from pv_sim.runner import PvSimParams, PvSimPaths, run_pv_sim
 from download.run_downloads import main as run_downloads
-from download.validation import main as validate
+from validation import main as validate
 from evaluation.grid_costs import write_load_grid_costs, write_system_grid_costs
 from optimizer.forecast_df import resample_power_temp
 from optimizer.optimizer import (
