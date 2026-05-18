@@ -78,17 +78,27 @@ url:
 # =============================================================================
 paths:
   # ---------------------------------------------------------------------------
+  # Raw
+  # ---------------------------------------------------------------------------
+  pvgis_raw: "data/pv/raw/pvgis_horizon_augsburg_raw.csv"
+  meteo_raw: "data/pv/raw/dwd_meteo_raw.csv"
+  solar_raw: "data/pv/raw/dwd_solar_data_raw.csv"
+    
+  # ---------------------------------------------------------------------------
   # General
   # ---------------------------------------------------------------------------
   metadata: "data/pv/general/metadata_stations.csv"
   pvgis: "data/pv/general/pvgis_horizon_augsburg.csv"
-
-  meteo: "data/pv/actual/dwd_meteo.csv"
-  solar: "data/pv/actual/dwd_solar_data.csv"
+  validation_report: "data/general/validation_report.json"
 
   # ---------------------------------------------------------------------------
   # PV
   # ---------------------------------------------------------------------------
+
+  meteo: "data/pv/actual/dwd_meteo.csv"
+  solar: "data/pv/actual/dwd_solar_data.csv"
+
+
   true_sun_position: "data/pv/actual/debug/true_sp_10min.csv"
   apparent: "data/pv/actual/debug/apparent_sp.csv"
   dni: "data/pv/actual/debug/dni.csv"

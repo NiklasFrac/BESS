@@ -42,7 +42,28 @@ Station Augsburg Bayern (`00232`) und schreiben sie unter `data/pv/...`.
 | `download/solar.py` | Lädt DWD-10-Minuten-Solardaten: Globalstrahlung `GS_10` und diffuse Strahlung `DS_10`; Input für DNI und Einstrahlung auf die Modulebene. | `data/pv/actual/dwd_solar_data.csv` |
 | `download/horizon.py` | Lädt aus PVGIS das lokale Horizontprofil auf Basis der Stationskoordinaten; später zur Abschattung der Direktstrahlung. | `data/pv/general/pvgis_horizon_augsburg.csv` |
 
-## 3. PV-Simulation (`pv_sim/`)
+## 3. Datenhygiene
+
+Zwischen Downloader und PV-Simulation werden die Eingangsdaten geprüft und
+gezielt bereinigt, damit die späteren Simulationsschritte keine Energie aus
+fehlenden Daten erzeugen.
+
+1. Bei fehlender oder falscher Stations-ID, fehlendem oder falschem
+   Stationsnamen oder `NaN`-Werten in der zugehörigen Metadatenzeile bricht der
+   Download-Run direkt ab.
+2. `NaN`-Werte in den Solardaten führen dazu, dass die PV-Produktion am
+   zugehörigen Zeitstempel im finalen `pv_output.csv` auf `0` gesetzt wird.
+   Dadurch wird vermieden, dass aus fehlenden Strahlungsdaten künstlich Energie
+   erzeugt wird.
+3. Das Horizontprofil wird in `download/validation.py` eingelesen und auf
+   `NaN`-Werte in `horizon_height_deg` untersucht. Gefundene `NaN`-Werte werden
+   auf `0` gesetzt.
+
+`validation.py` erzeugt zusätzlich einen JSON-Report mit einer Übersicht der
+durchgeführten Handlungen, damit nachvollziehbar bleibt, welche Daten im
+Validierungsschritt verändert wurden.
+
+## 4. PV-Simulation (`pv_sim/`)
 
 `pv_sim/runner.py` führt die Pipeline chronologisch aus. Die wichtigsten
 Parameter kommen aus `configs/config.yaml`: Zeitraum, 10-Minuten-Frequenz,
@@ -158,7 +179,7 @@ Umgebungstemperatur `ambient_temp_degC` auf dem PV-Zeitstempelraster.
 
 ![Energy Plot](data/visualisation/energy_plot.png)
 
-## 4. Batterie-Simulation (`battery_sim/`)
+## 5. Batterie-Simulation (`battery_sim/`)
 
 Die Batterie-Simulation beschreibt, wie ein geplanter Speicherfahrplan
 physikalisch umgesetzt wird. Der Fahrplan besteht aus einer Leistung
@@ -257,7 +278,7 @@ Die Batterie schreibt drei Ergebnisdateien:
 - `data/battery/battery_degradation.csv`: monatliche Alterungskennzahlen,
   kumulierte EFC, Kalenderalterung, Zyklenalterung und Kapazitätsfaktor.
 
-## 5. Optimizer (`optimizer/`)
+## 6. Optimizer (`optimizer/`)
 
 Der Optimizer plant den Batteriebetrieb auf Basis von PV-Prognose, Lastprofil,
 Tarifparametern und aktuellem Batteriezustand. In `proof_of_concept.py` wird er
@@ -309,7 +330,7 @@ Die vollständige mathematische Formulierung liegt als PDF unter
 Der geplante Dispatch wird nach `data/optimizer/optimizer_dispatch.csv`
 geschrieben.
 
-## 6. Results (`data/results/`)
+## 7. Results (`data/results/`)
 
 Nach Optimizer und Batterie-Simulation werden zwei Dispatch-Dateien erzeugt.
 `data/results/baseline_dispatch.csv` beschreibt den Netzbezug des Lastprofils
@@ -338,7 +359,7 @@ Die KPI-Tabelle fasst Baseline, System und Differenz in einer Ansicht zusammen.
 Sie macht sichtbar, wie sich Netzbezug, Kosten, Peak und Autarkie gemeinsam
 verändern und dient als kompakter Überblick über den Gesamteffekt des EMS.
 
-## 7. Sanity Check (`sanity/random_benchmark.py`)
+## 8. Sanity Check (`sanity/random_benchmark.py`)
 
 `sanity/random_benchmark.py` läuft standardmäßig mit `--runs 100 --seed 42`. Im
 aktuellen Output wurden `100` zulässige Random-Fahrpläne gegen denselben
@@ -365,7 +386,7 @@ aggressiver: `228` kumulative EFC und `1.286 kWh` Kapazitätsverlust vs.
 Random-Median `144` EFC und `0.958 kWh`. Die Zahlen sind wie bereits erwähnt Demo-Kennzahlen.
 
 
-## 8. Setup und Qualitätssicherung
+## 9. Setup und Qualitätssicherung
 
 ### Reproduzierbares Setup
 

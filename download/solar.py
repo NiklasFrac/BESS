@@ -39,7 +39,7 @@ def download_dwd_10min_solar(cfg: dict, repo_root: Path) -> None:
     station_id = cfg["station"]["id"]
     start_utc = pd.Timestamp(cfg["time"]["start_utc"], tz="UTC")
     end_utc = pd.Timestamp(cfg["time"]["end_utc"], tz="UTC")
-    output_path = repo_root / cfg["paths"]["solar"]
+    output_path = repo_root / cfg["paths"]["solar_raw"]
 
     log.info("Lade DWD-Solarprodukt: %s", url)
     response = requests.get(url, timeout=120)

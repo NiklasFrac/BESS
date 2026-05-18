@@ -102,3 +102,81 @@ def test_compute_energy_builds_energy_and_optimizer_output(
     assert captured["age"].iloc[1] > 0.99
     assert pv_out.columns.tolist() == ["timestamp_utc", "pv_kw", "ambient_temp_degC"]
     assert pv_out["pv_kw"].tolist() == pytest.approx([0.0, 1.536])
+
+
+def test_compute_energy_replaces_nan_pv_kw_with_zero_in_optimizer_output(
+    tmp_path,
+    monkeypatch,
+):
+    meteo_path = tmp_path / "meteo.csv"
+    poa_path = tmp_path / "poa.csv"
+    effective_path = tmp_path / "effective.csv"
+    out_path = tmp_path / "out" / "energy.csv"
+    pv_output_path = tmp_path / "out" / "pv_output.csv"
+
+    write_csv(
+        meteo_path,
+        [
+            {"timestamp_utc": "2024-01-01 00:10:00+00:00", "TT_10": 10.0, "FF_10": 2.0},
+            {"timestamp_utc": "2024-01-01 00:20:00+00:00", "TT_10": 11.0, "FF_10": 2.0},
+        ],
+    )
+    write_csv(
+        poa_path,
+        [
+            {"timestamp_utc": "2024-01-01 00:10:00+00:00", "poa_global": 100.0},
+            {"timestamp_utc": "2024-01-01 00:20:00+00:00", "poa_global": 100.0},
+        ],
+    )
+    write_csv(
+        effective_path,
+        [
+            {"timestamp_utc": "2024-01-01 00:10:00+00:00", "effective_irradiance": float("nan")},
+            {"timestamp_utc": "2024-01-01 00:20:00+00:00", "effective_irradiance": 500.0},
+        ],
+    )
+
+    monkeypatch.setattr(
+        modul_sim_module.pvlib.temperature,
+        "faiman",
+        lambda poa_global, temp_air, wind_speed, u0, u1: temp_air,
+    )
+    monkeypatch.setattr(
+        modul_sim_module.pvlib.pvsystem,
+        "pvwatts_dc",
+        lambda effective_irradiance, temp_cell, pdc0, gamma_pdc: (
+            effective_irradiance / 1000.0 * pdc0
+        ),
+    )
+    monkeypatch.setattr(
+        modul_sim_module.pvlib.pvsystem,
+        "pvwatts_losses",
+        lambda **kwargs: pd.Series([0.0, 0.0], index=kwargs["age"].index),
+    )
+    monkeypatch.setattr(
+        modul_sim_module.pvlib.inverter,
+        "pvwatts",
+        lambda pdc, pdc0, eta_inv_nom: pdc,
+    )
+
+    compute_energy(
+        meteo_path=meteo_path,
+        poa_path=poa_path,
+        effective_irradiance_path=effective_path,
+        out_path=out_path,
+        pv_output_path=pv_output_path,
+        module_pdc0=400.0,
+        module_count=10,
+        gamma_pdc=-0.003,
+        annual_age_loss_pct=1.0,
+        pac0_each=3000.0,
+        inverter_count=1,
+        eta_inv_nom=0.96,
+        freq="10min",
+    )
+
+    out = pd.read_csv(out_path)
+    pv_out = pd.read_csv(pv_output_path)
+
+    assert pd.isna(out.loc[0, "p_ac_w"])
+    assert pv_out["pv_kw"].tolist() == pytest.approx([0.0, 2.0])

@@ -108,9 +108,12 @@ def compute_energy(
     out_path.parent.mkdir(parents=True, exist_ok=True)
     df.to_csv(out_path, index=False, na_rep="NaN")
 
+    pv_kw = df["p_ac_w"] / 1000.0
+    pv_kw_nan_replaced = int(pv_kw.isna().sum())
+
     pv_output_path.parent.mkdir(parents=True, exist_ok=True)
     df.assign(
-        pv_kw=df["p_ac_w"] / 1000.0,
+        pv_kw=pv_kw.fillna(0.0).clip(lower=0.0),
         ambient_temp_degC=df["TT_10"],
     )[["timestamp_utc", "pv_kw", "ambient_temp_degC"]].to_csv(
         pv_output_path,
@@ -118,9 +121,10 @@ def compute_energy(
         float_format="%.3f",
     )
     log.info(
-        "Gespeichert: %s, %s | Zeilen: %d | AC_kWh: %.1f",
+        "Gespeichert: %s, %s | Zeilen: %d | AC_kWh: %.1f | pv_kw_NaN_zu_0: %d",
         out_path,
         pv_output_path,
         len(df),
         df["e_net_ac_kwh"].sum(),
+        pv_kw_nan_replaced,
     )

@@ -93,7 +93,7 @@ def download_dwd_temp_pressure_wind(
     station_id = cfg["station"]["id"]
     start_utc = pd.Timestamp(cfg["time"]["start_utc"], tz="UTC")
     end_utc = pd.Timestamp(cfg["time"]["end_utc"], tz="UTC")
-    output_file = repo_root / cfg["paths"]["meteo"]
+    output_file = repo_root / cfg["paths"]["meteo_raw"]
 
     temp = _read_dwd_product(cfg["url"]["air_temp_url"], station_id, start_utc, end_utc)
     wind = _read_dwd_product(cfg["url"]["wind_url"], station_id, start_utc, end_utc)

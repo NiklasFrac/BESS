@@ -52,7 +52,7 @@ def download_pvgis_horizon(cfg: dict, repo_root: Path) -> pd.DataFrame:
     station_id = cfg["station"]["id"]
     station_name = cfg["station"]["name"]
     metadata_path = repo_root / cfg["paths"]["metadata"]
-    output_path = repo_root / cfg["paths"]["pvgis"]
+    output_path = repo_root / cfg["paths"]["pvgis_raw"]
 
     log.info("Loading coordinates for station %s (%s)", station_id, station_name)
     lat, lon = _load_station_coords(metadata_path, station_id)
