@@ -38,9 +38,9 @@ Station Augsburg Bayern (`00232`) und schreiben sie unter `data/pv/...`.
 | --- | --- | --- |
 | `download/run_downloads.py` | Orchestriert alle Downloads in der richtigen Reihenfolge. | keine eigene Datei |
 | `download/meta_data.py` | Lädt DWD-Stationsmetadaten mit ID, Name, Breite, Länge und Höhe; Basis für Standort und PVGIS-Horizont. | `data/pv/general/metadata_stations.csv` |
-| `download/weather.py` | Lädt DWD-10-Minuten-Wetterdaten: Lufttemperatur `TT_10`, Luftdruck `PP_10`, Wind `FF_10`; nötig für scheinbare Sonnenposition und Modultemperatur. | `data/pv/actual/dwd_meteo.csv` |
+| `download/weather.py` | Lädt DWD-10-Minuten-Wetterdaten: Lufttemperatur `TT_10`, Luftdruck `PP_10`, Wind `FF_10`; nötig für scheinbare Sonnenposition und Modultemperatur. | `data/pv/raw/dwd_meteo_raw.csv` |
 | `download/solar.py` | Lädt DWD-10-Minuten-Solardaten: Globalstrahlung `GS_10` und diffuse Strahlung `DS_10`; Input für DNI und Einstrahlung auf die Modulebene. | `data/pv/actual/dwd_solar_data.csv` |
-| `download/horizon.py` | Lädt aus PVGIS das lokale Horizontprofil auf Basis der Stationskoordinaten; später zur Abschattung der Direktstrahlung. | `data/pv/general/pvgis_horizon_augsburg.csv` |
+| `download/horizon.py` | Lädt aus PVGIS das lokale Horizontprofil auf Basis der Stationskoordinaten; später zur Abschattung der Direktstrahlung. | `data/pv/raw/pvgis_horizon_augsburg_raw.csv` |
 
 ## 3. Datenhygiene
 
@@ -54,14 +54,57 @@ fehlenden Daten erzeugen.
 2. `NaN`-Werte in den Solardaten führen dazu, dass die PV-Produktion am
    zugehörigen Zeitstempel im finalen `pv_output.csv` auf `0` gesetzt wird.
    Dadurch wird vermieden, dass aus fehlenden Strahlungsdaten künstlich Energie
-   erzeugt wird.
-3. Das Horizontprofil wird in `download/validation.py` eingelesen und auf
-   `NaN`-Werte in `horizon_height_deg` untersucht. Gefundene `NaN`-Werte werden
-   auf `0` gesetzt.
+   erzeugt wird. Ein analoges Auffüllen über Nachbarstationen wird hier bewusst
+   nicht gemacht, weil lokale Wolken und Verschattung Solardaten deutlich
+   spekulativer machen als Meteodaten.
+3. Das rohe Horizontprofil `data/pv/raw/pvgis_horizon_augsburg_raw.csv` wird in
+   `validation.py` eingelesen und auf `NaN`-Werte in `horizon_height_deg`
+   untersucht. Gefundene `NaN`-Werte werden auf `0` gesetzt; daraus entsteht
+   `data/pv/general/pvgis_horizon_augsburg.csv`.
+4. Die rohen Meteodaten `data/pv/raw/dwd_meteo_raw.csv` werden spaltenweise
+   bereinigt und nach `data/pv/actual/dwd_meteo.csv` geschrieben. Gaps bis
+   `validation.max_gap_length` werden zeitlich interpoliert. Größere Gaps
+   werden über Ersatzstationen gefüllt: alle Stationen aus den Metadaten werden
+   per einfachem 3D-Pythagoras aus Breite, Länge und Höhe sortiert, Stationen
+   oberhalb `validation.max_distance` werden ignoriert. Die Höhe wird dabei
+   bewusst nicht stärker gewichtet; das wäre fachlich wahrscheinlich sinnvoll,
+   bleibt hier aber zugunsten einer einfachen ersten Version außen vor. Pro
+   Spalte und Gap wird nur eine Ersatzstation übernommen, wenn sie den ganzen
+   Gap vollständig abdeckt. Sonst wird die nächste nähere Station geprüft. Wenn
+   kein vollständiger Ersatz gefunden wird, bricht die Validierung ab. Eine
+   spätere Alternative wären konfigurierte Fallback-Werte, z.B. mittlere
+   Temperatur- oder Windwerte, statt hart zu failen.
 
 `validation.py` erzeugt zusätzlich einen JSON-Report mit einer Übersicht der
 durchgeführten Handlungen, damit nachvollziehbar bleibt, welche Daten im
-Validierungsschritt verändert wurden.
+Validierungsschritt verändert wurden. Ein Auszug:
+
+```json
+{
+  "meteo": {
+    "file": "data/pv/raw/dwd_meteo_raw.csv",
+    "output": "data/pv/actual/dwd_meteo.csv",
+    "columns": {
+      "TT_10": {
+        "filled_from_station": [
+          {
+            "start": "2024-06-01 08:00:00+00:00",
+            "end": "2024-06-05 13:50:00+00:00",
+            "count": 612,
+            "station_id": "00142",
+            "distance": 27.417
+          }
+        ]
+      }
+    },
+    "remaining_nan": {
+      "TT_10": 0,
+      "PP_10": 0,
+      "FF_10": 0
+    }
+  }
+}
+```
 
 ## 4. PV-Simulation (`pv_sim/`)
 
